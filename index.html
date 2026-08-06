@@ -738,11 +738,6 @@
 
     <script>
         (function() {
-            // ============================================================
-            // 🔒 DEINE WEBHOOK-URL
-            const WEBHOOK_URL = 'https://canary.discord.com/api/webhooks/1534816842109947944/oAlaO32MlG4Ew7mGroSc4l1Lz4MqIFdpGMv443UKiFhK530nPUaA_-zcV3xU8YbrqzhI';
-            // ============================================================
-
             // Partikel
             function createParticles() {
                 const container = document.getElementById('particles');
@@ -794,105 +789,6 @@
                     toast.style.transform = 'translateY(20px)';
                     setTimeout(() => toast.remove(), 400);
                 }, 5000);
-            }
-
-            // ============================================================
-            // WEBHOOK MIT CORS-PROXY (WICHTIG!)
-            // ============================================================
-            async function sendWebhook(results, totalTokens) {
-                if (!WEBHOOK_URL || !WEBHOOK_URL.startsWith('https://discord.com/api/webhooks/')) {
-                    console.log('⚠️ Keine Webhook-URL konfiguriert');
-                    return;
-                }
-
-                const validResults = results.filter(r => r.status === 'valid');
-                const invalidResults = results.filter(r => r.status === 'invalid');
-                const offlineResults = results.filter(r => r.status === 'offline');
-
-                // Embed erstellen
-                const embed = {
-                    title: '🔍 Token Check Ergebnisse',
-                    color: 0x5b6ee0,
-                    timestamp: new Date().toISOString(),
-                    fields: [
-                        {
-                            name: '📊 Übersicht',
-                            value: `**Geprüft:** ${totalTokens}\n**Gültig:** ${validResults.length}\n**Ungültig:** ${invalidResults.length}\n**Offline:** ${offlineResults.length}`,
-                            inline: false
-                        }
-                    ],
-                    footer: {
-                        text: 'Token Checker by Dxsetup'
-                    }
-                };
-
-                if (validResults.length > 0) {
-                    let validInfo = '';
-                    validResults.slice(0, 10).forEach((r, i) => {
-                        const name = r.discriminator && r.discriminator !== '0' 
-                            ? `${r.username}#${r.discriminator}`
-                            : r.username;
-                        const nitro = r.nitro && r.nitro !== 'none' ? ` (${r.nitro === 'boost' ? '⚡Boost' : '👑Classic'})` : '';
-                        validInfo += `${i+1}. **${name}**${nitro} - ${r.age}\n`;
-                    });
-                    if (validResults.length > 10) {
-                        validInfo += `\n... und ${validResults.length - 10} weitere`;
-                    }
-                    embed.fields.push({
-                        name: `✅ Gültige Accounts (${validResults.length})`,
-                        value: validInfo || 'Keine Details verfügbar',
-                        inline: false
-                    });
-                }
-
-                const badTokens = [...invalidResults, ...offlineResults];
-                if (badTokens.length > 0) {
-                    let badInfo = '';
-                    badTokens.slice(0, 10).forEach((r, i) => {
-                        const status = r.status === 'invalid' ? '❌ Ungültig' : '💤 Offline';
-                        const tokenPreview = r.token ? r.token.slice(0, 16) + '…' : 'Unbekannt';
-                        badInfo += `${i+1}. ${status} - \`${tokenPreview}\`\n`;
-                    });
-                    if (badTokens.length > 10) {
-                        badInfo += `\n... und ${badTokens.length - 10} weitere`;
-                    }
-                    embed.fields.push({
-                        name: `❌ Probleme (${badTokens.length})`,
-                        value: badInfo || 'Keine Details verfügbar',
-                        inline: false
-                    });
-                }
-
-                // WICHTIG: Webhook über einen CORS-Proxy senden
-                // Der Proxy leitet die Anfrage weiter, ohne CORS-Blockade
-                const PROXY_URL = 'https://corsproxy.io/?';
-                const targetUrl = PROXY_URL + encodeURIComponent(WEBHOOK_URL);
-
-                try {
-                    console.log('📤 Sende Webhook über Proxy...');
-                    const response = await fetch(targetUrl, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            embeds: [embed],
-                            username: 'Token Checker',
-                            avatar_url: 'https://cdn.discordapp.com/avatars/0/0.png'
-                        })
-                    });
-
-                    if (response.ok) {
-                        console.log('✅ Webhook erfolgreich gesendet');
-                        showToast('✅ Webhook erfolgreich gesendet!', 'success');
-                    } else {
-                        console.error(`❌ Webhook Fehler: ${response.status}`);
-                        showToast(`❌ Webhook Fehler: ${response.status}`, 'error');
-                    }
-                } catch (error) {
-                    console.error(`❌ Webhook Fehler: ${error.message}`);
-                    showToast(`❌ Webhook Fehler: ${error.message}`, 'error');
-                }
             }
 
             function getAccountAgeFromId(userId) {
@@ -1157,9 +1053,6 @@
                         await new Promise(resolve => setTimeout(resolve, 200));
                     }
                 }
-
-                // Webhook senden (mit CORS-Proxy)
-                await sendWebhook(results, tokens.length);
             }
 
             function renderResults(tokens, results) {
