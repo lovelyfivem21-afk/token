@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Discord Token Checker Pro</title>
+    <title>Token Checker</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         * {
@@ -210,14 +210,51 @@
             color: #f0f3ff;
             text-shadow: 0 0 30px rgba(91, 110, 224, 0.1);
             letter-spacing: -0.5px;
+            position: relative;
+        }
+
+        /* Animierter Titel */
+        .card-header-left h1 .title-text {
+            display: inline-block;
+            background: linear-gradient(90deg, #8b9cf7, #5fdfb0, #8b9cf7);
+            background-size: 300% 100%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradientMove 4s ease-in-out infinite;
+        }
+
+        @keyframes gradientMove {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        .card-header-left h1 .title-text::after {
+            content: '|';
+            display: inline-block;
+            -webkit-text-fill-color: #8b9cf7;
+            animation: blink 1s step-end infinite;
+            margin-left: 2px;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
         }
 
         .card-header-left h1 small {
-            font-size: 1rem;
+            font-size: 0.9rem;
             font-weight: 400;
-            color: #8b9cf7;
-            margin-left: 8px;
-            opacity: 0.8;
+            color: #6a7099;
+            margin-left: 6px;
+            opacity: 0.6;
+            -webkit-text-fill-color: #6a7099;
         }
 
         .header-actions {
@@ -865,8 +902,8 @@
             opacity: 0.6;
         }
 
-        /* Login Modal - Desktop Login */
-        .login-modal {
+        /* TOTP Modal */
+        .totp-modal {
             display: none;
             position: fixed;
             top: 0;
@@ -876,6 +913,144 @@
             background: rgba(0,0,0,0.85);
             backdrop-filter: blur(10px);
             z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+        }
+
+        .totp-modal.active {
+            display: flex;
+        }
+
+        .totp-modal-content {
+            background: rgba(28, 29, 45, 0.95);
+            border-radius: 24px;
+            padding: 2.5rem;
+            max-width: 450px;
+            width: 100%;
+            border: 1px solid rgba(91, 110, 224, 0.3);
+            animation: fadeInUp 0.4s ease-out;
+        }
+
+        .totp-modal-content h2 {
+            color: #f0f3ff;
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .totp-modal-content h2 i {
+            color: #8b9cf7;
+        }
+
+        .totp-modal-content .sub {
+            color: #8892c0;
+            font-size: 0.9rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .totp-modal-content .input-group {
+            margin-bottom: 1.2rem;
+        }
+
+        .totp-modal-content .input-group label {
+            color: #b9c2f0;
+            font-size: 0.85rem;
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        .totp-modal-content .input-group input {
+            width: 100%;
+            padding: 10px 14px;
+            border-radius: 12px;
+            background: rgba(0,0,0,0.4);
+            border: 1px solid rgba(68, 71, 102, 0.4);
+            color: #e4e9ff;
+            font-size: 0.9rem;
+            font-family: 'Menlo', monospace;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .totp-modal-content .input-group input:focus {
+            border-color: rgba(91, 110, 224, 0.5);
+            box-shadow: 0 0 20px rgba(91, 110, 224, 0.05);
+        }
+
+        .totp-modal-content .code-display {
+            background: rgba(0,0,0,0.5);
+            border-radius: 16px;
+            padding: 1.5rem;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            border: 1px solid rgba(68, 71, 102, 0.3);
+        }
+
+        .totp-modal-content .code-display .code {
+            font-size: 3rem;
+            font-weight: 700;
+            color: #5fdfb0;
+            font-family: 'Menlo', monospace;
+            letter-spacing: 8px;
+        }
+
+        .totp-modal-content .code-display .expires {
+            color: #8892c0;
+            font-size: 0.8rem;
+            margin-top: 8px;
+        }
+
+        .totp-modal-content .code-display .expires .timer {
+            color: #f7799b;
+            font-weight: 600;
+        }
+
+        .totp-modal-content .close-modal {
+            width: 100%;
+            padding: 12px;
+            border-radius: 12px;
+            border: none;
+            background: linear-gradient(135deg, #b36ee0, #9a4dc9);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .totp-modal-content .close-modal:hover {
+            transform: scale(1.02);
+        }
+
+        .totp-modal-content .copy-code {
+            background: rgba(91, 110, 224, 0.2);
+            border: 1px solid rgba(91, 110, 224, 0.3);
+            color: #8b9cf7;
+            padding: 6px 16px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 8px;
+        }
+
+        .totp-modal-content .copy-code:hover {
+            background: rgba(91, 110, 224, 0.4);
+        }
+
+        /* Login Modal */
+        .login-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(10px);
+            z-index: 9998;
             justify-content: center;
             align-items: center;
             padding: 2rem;
@@ -1010,12 +1185,36 @@
             .icon-btn { width: 34px; height: 34px; font-size: 0.9rem; }
             .filter-row { gap: 4px; }
             .filter-btn { font-size: 0.7rem; padding: 4px 12px; }
+            .totp-modal-content { padding: 1.5rem; }
+            .totp-modal-content .code-display .code { font-size: 2rem; letter-spacing: 4px; }
             .login-modal-content { padding: 1.5rem; }
-            .login-modal-content .script-box code { font-size: 0.7rem; }
         }
     </style>
 </head>
 <body>
+
+    <!-- TOTP Modal -->
+    <div class="totp-modal" id="totpModal">
+        <div class="totp-modal-content">
+            <h2><i class="fas fa-shield-alt"></i> 2FA Code Generator</h2>
+            <div class="sub">Generiere einen 6-stelligen 2FA Code aus einem Secret Key</div>
+            
+            <div class="input-group">
+                <label><i class="fas fa-key"></i> Secret Key</label>
+                <input type="text" id="totpSecret" placeholder="Z.B. JBSWY3DPEHPK3PXP">
+            </div>
+            
+            <div class="code-display">
+                <div class="code" id="totpCode">------</div>
+                <div class="expires"><span class="timer" id="totpTimer"></span></div>
+                <button class="copy-code" onclick="copyTotpCode()"><i class="fas fa-copy"></i> Code kopieren</button>
+            </div>
+            
+            <button class="close-modal" onclick="document.getElementById('totpModal').classList.remove('active'); clearInterval(window.totpInterval);">
+                <i class="fas fa-check"></i> Schließen
+            </button>
+        </div>
+    </div>
 
     <!-- Login Modal -->
     <div class="login-modal" id="loginModal">
@@ -1060,9 +1259,12 @@
             <div class="card-header">
                 <div class="card-header-left">
                     <i class="fab fa-discord"></i>
-                    <h1>Account <small>Token Check Pro</small></h1>
+                    <h1><span class="title-text">Token Checker</span> <small>v2.0</small></h1>
                 </div>
                 <div class="header-actions">
+                    <button class="icon-btn" id="totpBtn" title="2FA Code Generator">
+                        <i class="fas fa-shield-alt"></i>
+                    </button>
                     <button class="icon-btn" id="themeToggle" title="Dark/Light Mode">
                         <i class="fas fa-moon"></i>
                     </button>
@@ -1131,6 +1333,138 @@
 
     <script>
         (function() {
+            // ============================================================
+            // TOTP (2FA Code Generator)
+            // ============================================================
+            function base32Decode(str) {
+                const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+                let bits = '';
+                for (let i = 0; i < str.length; i++) {
+                    const val = alphabet.indexOf(str[i].toUpperCase());
+                    if (val === -1) continue;
+                    bits += val.toString(2).padStart(5, '0');
+                }
+                const bytes = [];
+                for (let i = 0; i + 8 <= bits.length; i += 8) {
+                    bytes.push(parseInt(bits.slice(i, i + 8), 2));
+                }
+                return new Uint8Array(bytes);
+            }
+
+            async function hmacSha1(key, message) {
+                const keyData = typeof key === 'string' ? new TextEncoder().encode(key) : key;
+                const msgData = typeof message === 'string' ? new TextEncoder().encode(message) : message;
+                const cryptoKey = await crypto.subtle.importKey(
+                    'raw', keyData,
+                    { name: 'HMAC', hash: 'SHA-1' },
+                    false, ['sign']
+                );
+                const signature = await crypto.subtle.sign('HMAC', cryptoKey, msgData);
+                return new Uint8Array(signature);
+            }
+
+            async function generateTotp(secret) {
+                if (!secret || secret.trim().length === 0) return null;
+                try {
+                    const cleanSecret = secret.trim().toUpperCase().replace(/\s/g, '');
+                    const key = base32Decode(cleanSecret);
+                    const epoch = Math.floor(Date.now() / 1000);
+                    const time = Math.floor(epoch / 30);
+                    
+                    const timeBuffer = new ArrayBuffer(8);
+                    const view = new DataView(timeBuffer);
+                    view.setBigUint64(0, BigInt(time), false);
+                    
+                    const hmac = await hmacSha1(key, new Uint8Array(timeBuffer));
+                    
+                    const offset = hmac[19] & 0xf;
+                    const code = ((hmac[offset] & 0x7f) << 24) |
+                                 ((hmac[offset + 1] & 0xff) << 16) |
+                                 ((hmac[offset + 2] & 0xff) << 8) |
+                                 (hmac[offset + 3] & 0xff);
+                    
+                    const totp = code % 1000000;
+                    return totp.toString().padStart(6, '0');
+                } catch (e) {
+                    console.error('TOTP Fehler:', e);
+                    return null;
+                }
+            }
+
+            // TOTP Modal
+            const totpBtn = document.getElementById('totpBtn');
+            const totpModal = document.getElementById('totpModal');
+            const totpSecret = document.getElementById('totpSecret');
+            const totpCode = document.getElementById('totpCode');
+            const totpTimer = document.getElementById('totpTimer');
+            let totpInterval = null;
+
+            totpBtn.addEventListener('click', function() {
+                totpModal.classList.add('active');
+                totpSecret.value = '';
+                totpCode.textContent = '------';
+                totpTimer.textContent = '';
+                if (totpInterval) clearInterval(totpInterval);
+                startTotpTimer();
+            });
+
+            async function startTotpTimer() {
+                if (totpInterval) clearInterval(totpInterval);
+                await updateTotpCode();
+                totpInterval = setInterval(async () => {
+                    const remaining = 30 - (Math.floor(Date.now() / 1000) % 30);
+                    totpTimer.textContent = remaining > 0 ? `${remaining}s` : '';
+                    if (remaining === 0 || remaining === 30) {
+                        await updateTotpCode();
+                    }
+                }, 1000);
+            }
+
+            async function updateTotpCode() {
+                const secret = totpSecret.value.trim();
+                if (!secret) {
+                    totpCode.textContent = '------';
+                    return;
+                }
+                const code = await generateTotp(secret);
+                if (code) {
+                    totpCode.textContent = code;
+                } else {
+                    totpCode.textContent = 'Fehler';
+                }
+            }
+
+            totpSecret.addEventListener('input', updateTotpCode);
+            totpSecret.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') updateTotpCode();
+            });
+
+            window.copyTotpCode = function() {
+                const code = totpCode.textContent;
+                if (code && code !== '------' && code !== 'Fehler') {
+                    navigator.clipboard.writeText(code).then(() => {
+                        showToast('✅ 2FA Code kopiert!', 'success');
+                    }).catch(() => {
+                        const textarea = document.createElement('textarea');
+                        textarea.value = code;
+                        document.body.appendChild(textarea);
+                        textarea.select();
+                        document.execCommand('copy');
+                        textarea.remove();
+                        showToast('✅ 2FA Code kopiert!', 'success');
+                    });
+                } else {
+                    showToast('❌ Kein gültiger Code zum Kopieren', 'error');
+                }
+            };
+
+            totpModal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('active');
+                    if (totpInterval) clearInterval(totpInterval);
+                }
+            });
+
             // ============================================================
             // THEME TOGGLE
             // ============================================================
@@ -1338,12 +1672,10 @@
             // ============================================================
             // MODAL FUNCTIONS
             // ============================================================
-            function openModal(token) {
+            function openLoginModal(token) {
                 const modal = document.getElementById('loginModal');
                 const code = document.getElementById('scriptCode');
-
                 code.textContent = `function login(token) {\n    setInterval(() => {\n        document.body.appendChild(document.createElement \`iframe\`).contentWindow.localStorage.token = \`"\${token}"\`\n    }, 50);\n    setTimeout(() => {\n        location.reload();\n    }, 2500);\n}\nlogin('${token}');`;
-
                 modal.classList.add('active');
             }
 
@@ -1492,7 +1824,7 @@
                     });
                 });
 
-                // Desktop Login Button (nur bei gültigen Tokens)
+                // Desktop Login Button
                 if (result.status === 'valid') {
                     const desktopLoginBtn = document.createElement('button');
                     desktopLoginBtn.className = 'action-btn desktop-login';
@@ -1500,7 +1832,7 @@
                     desktopLoginBtn.title = 'Desktop Login Script';
                     desktopLoginBtn.addEventListener('click', function(e) {
                         e.stopPropagation();
-                        openModal(token);
+                        openLoginModal(token);
                     });
                     actionsDiv.appendChild(desktopLoginBtn);
                 }
@@ -1752,8 +2084,9 @@
             // ============================================================
             // CONSOLE HELPER
             // ============================================================
-            console.log('%c🔐 Discord Token Checker Pro geladen!', 'font-size:16px; font-weight:bold; color:#8b9cf7;');
+            console.log('%c🔐 Token Checker geladen!', 'font-size:16px; font-weight:bold; color:#8b9cf7;');
             console.log('%c💻 Klicke auf "Desktop Login" für das Login Script', 'font-size:12px; color:#8892c0;');
+            console.log('%c🔑 Klicke auf das 2FA Icon für den Code Generator', 'font-size:12px; color:#8892c0;');
 
             window.addEventListener('DOMContentLoaded', function() {
                 resultList.innerHTML = `
@@ -1767,7 +2100,7 @@
                 setFilter('all');
             });
 
-            console.log('✅ Discord Token Checker Pro mit Desktop Login geladen.');
+            console.log('✅ Token Checker mit 2FA Generator geladen.');
         })();
     </script>
 </body>
