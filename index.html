@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Discord Token Checker</title>
+    <title>Discord Token Checker Pro</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         * {
@@ -22,20 +22,61 @@
             align-items: flex-start;
             position: relative;
             overflow-x: hidden;
+            transition: background 0.3s ease;
         }
 
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: 
-                radial-gradient(circle at 20% 50%, rgba(91, 110, 224, 0.05) 0%, transparent 50%),
-                radial-gradient(circle at 80% 50%, rgba(139, 156, 247, 0.05) 0%, transparent 50%);
-            pointer-events: none;
-            z-index: 0;
+        body.light-mode {
+            background: radial-gradient(ellipse at center, #e8ecf4 0%, #d0d6e8 50%, #b8c0d8 100%);
+        }
+
+        body.light-mode .card {
+            background: rgba(240, 242, 255, 0.85);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        body.light-mode .card-header-left h1 {
+            color: #1a1b2e;
+        }
+
+        body.light-mode .subhead {
+            color: #3d3f5e;
+        }
+
+        body.light-mode .token-area {
+            background: rgba(255, 255, 255, 0.6);
+            border: 1px solid rgba(68, 71, 102, 0.2);
+        }
+
+        body.light-mode textarea {
+            color: #1a1b2e;
+        }
+
+        body.light-mode textarea::placeholder {
+            color: #8892c0;
+        }
+
+        body.light-mode .stat-box {
+            background: rgba(255, 255, 255, 0.5);
+            border: 1px solid rgba(68, 71, 102, 0.15);
+        }
+
+        body.light-mode .result-item {
+            background: rgba(255, 255, 255, 0.5);
+            border: 1px solid rgba(68, 71, 102, 0.15);
+        }
+
+        body.light-mode .result-item:hover {
+            background: rgba(255, 255, 255, 0.7);
+        }
+
+        body.light-mode .result-item .info .username {
+            color: #1a1b2e;
+        }
+
+        body.light-mode .footer-hint {
+            color: #5b6ee0;
+            border-top: 1px solid rgba(68, 71, 102, 0.2);
         }
 
         .particles {
@@ -119,9 +160,16 @@
         .card-header {
             display: flex;
             align-items: center;
+            justify-content: space-between;
             gap: 14px;
             margin-bottom: 1.8rem;
             animation: slideInLeft 0.5s ease-out 0.2s both;
+        }
+
+        .card-header-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
         }
 
         @keyframes slideInLeft {
@@ -135,7 +183,7 @@
             }
         }
 
-        .card-header i {
+        .card-header-left i {
             font-size: 2.2rem;
             color: #8b9cf7;
             background: rgba(59, 61, 90, 0.6);
@@ -156,7 +204,7 @@
             }
         }
 
-        .card-header h1 {
+        .card-header-left h1 {
             font-weight: 700;
             font-size: 2rem;
             color: #f0f3ff;
@@ -164,12 +212,37 @@
             letter-spacing: -0.5px;
         }
 
-        .card-header h1 small {
+        .card-header-left h1 small {
             font-size: 1rem;
             font-weight: 400;
             color: #8b9cf7;
             margin-left: 8px;
             opacity: 0.8;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .icon-btn {
+            background: rgba(59, 61, 90, 0.4);
+            border: 1px solid rgba(88, 92, 130, 0.2);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #b9c2f0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1.1rem;
+        }
+
+        .icon-btn:hover {
+            background: rgba(91, 110, 224, 0.2);
+            transform: scale(1.05);
         }
 
         .subhead {
@@ -296,6 +369,16 @@
             border-color: rgba(77, 80, 122, 0.3);
         }
 
+        .btn-success {
+            background: linear-gradient(135deg, #2d8f6f, #1f7a5e);
+            border-color: #4f9b8a;
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px) scale(1.02);
+        }
+
         .file-label {
             background: rgba(50, 52, 83, 0.6);
             padding: 10px 24px;
@@ -322,9 +405,52 @@
             display: none;
         }
 
+        .filter-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 1.5rem;
+            animation: fadeInUp 0.5s ease-out 0.55s both;
+        }
+
+        .filter-btn {
+            padding: 6px 16px;
+            border-radius: 60px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            border: 1px solid rgba(88, 92, 130, 0.3);
+            background: rgba(61, 63, 94, 0.4);
+            color: #8892c0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .filter-btn:hover {
+            background: rgba(91, 110, 224, 0.2);
+            color: #d6deff;
+        }
+
+        .filter-btn.active {
+            background: rgba(91, 110, 224, 0.3);
+            border-color: #5b6ee0;
+            color: #f0f3ff;
+        }
+
+        .filter-btn.active-valid {
+            background: rgba(31, 61, 58, 0.4);
+            border-color: #5fdfb0;
+            color: #b0f0d0;
+        }
+
+        .filter-btn.active-invalid {
+            background: rgba(77, 46, 58, 0.4);
+            border-color: #f7799b;
+            color: #ffb0c7;
+        }
+
         .stats {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
             gap: 12px;
             margin-bottom: 1.5rem;
             animation: fadeInUp 0.5s ease-out 0.6s both;
@@ -340,6 +466,11 @@
             transition: all 0.3s ease;
             position: relative;
             overflow: hidden;
+            cursor: pointer;
+        }
+
+        .stat-box:hover {
+            transform: scale(1.02);
         }
 
         .stat-box::after {
@@ -359,7 +490,6 @@
 
         .stat-box.valid::after { background: #5fdfb0; }
         .stat-box.invalid::after { background: #f7799b; }
-        .stat-box.offline::after { background: #b39fdf; }
 
         .stat-box .number {
             font-size: 2rem;
@@ -369,7 +499,6 @@
 
         .stat-box.valid .number { color: #5fdfb0; }
         .stat-box.invalid .number { color: #f7799b; }
-        .stat-box.offline .number { color: #b39fdf; }
 
         .stat-box .label {
             font-size: 0.75rem;
@@ -386,6 +515,29 @@
             0% { transform: scale(0.5); opacity: 0; }
             50% { transform: scale(1.3); }
             100% { transform: scale(1); opacity: 1; }
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: rgba(59, 62, 94, 0.3);
+            border-radius: 4px;
+            margin-bottom: 1rem;
+            overflow: hidden;
+            animation: fadeInUp 0.5s ease-out 0.55s both;
+            display: none;
+        }
+
+        .progress-bar.active {
+            display: block;
+        }
+
+        .progress-bar .fill {
+            height: 100%;
+            background: linear-gradient(90deg, #5b6ee0, #8b9cf7);
+            border-radius: 4px;
+            width: 0%;
+            transition: width 0.3s ease;
         }
 
         .result-list {
@@ -427,6 +579,7 @@
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             animation: slideInResult 0.4s ease-out both;
             backdrop-filter: blur(10px);
+            position: relative;
         }
 
         .result-item:hover {
@@ -491,6 +644,10 @@
             color: #f0f3ff;
             font-size: 1rem;
             transition: color 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
         }
 
         .result-item:hover .username {
@@ -544,12 +701,6 @@
             color: #ffb0c7;
         }
 
-        .status-badge.offline {
-            background: rgba(62, 58, 74, 0.6);
-            border: 1px solid rgba(122, 111, 143, 0.4);
-            color: #cfc3f0;
-        }
-
         .status-badge.pending {
             background: rgba(58, 61, 74, 0.6);
             border: 1px solid rgba(106, 112, 153, 0.3);
@@ -560,57 +711,48 @@
             margin-right: 4px;
         }
 
-        .footer-hint {
-            margin-top: 1rem;
-            font-size: 0.9rem;
-            color: #6d7ee0;
-            text-align: center;
-            border-top: 1px solid rgba(53, 56, 79, 0.3);
-            padding-top: 14px;
-            letter-spacing: 0.5px;
-            font-weight: 400;
-            animation: fadeInUp 0.5s ease-out 0.7s both;
-            opacity: 0.8;
-            transition: opacity 0.3s;
+        .result-actions {
+            display: flex;
+            gap: 6px;
+            flex-shrink: 0;
+            flex-wrap: wrap;
         }
 
-        .footer-hint:hover {
-            opacity: 1;
+        .action-btn {
+            background: rgba(45, 47, 72, 0.6);
+            border: 1px solid rgba(77, 80, 122, 0.3);
+            border-radius: 8px;
+            padding: 4px 10px;
+            color: #8892c0;
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 4px;
         }
 
-        .footer-hint i {
-            margin-right: 6px;
-            color: #6d7ee0;
+        .action-btn:hover {
+            background: rgba(91, 110, 224, 0.2);
+            color: #f0f3ff;
+            border-color: rgba(91, 110, 224, 0.3);
         }
 
-        .loading-spinner {
-            display: inline-block;
-            animation: spin 1s linear infinite;
+        .action-btn.desktop-login {
+            background: linear-gradient(135deg, #2d8f6f, #1f7a5e);
+            border-color: #4f9b8a;
+            color: white;
         }
 
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
+        .action-btn.desktop-login:hover {
+            background: linear-gradient(135deg, #3fa880, #2d8f6f);
+            transform: scale(1.05);
         }
 
-        .empty-state {
-            color: #4a507a;
-            text-align: center;
-            padding: 2.5rem 1rem;
-            animation: fadeInUp 0.5s ease;
-        }
-
-        .empty-state i {
-            font-size: 2.5rem;
-            display: block;
-            margin-bottom: 0.75rem;
-            opacity: 0.5;
-        }
-
-        .empty-state .sub-text {
-            font-size: 0.85rem;
-            margin-top: 0.5rem;
-            opacity: 0.6;
+        .action-btn.copy-btn:hover {
+            background: rgba(95, 223, 176, 0.15);
+            border-color: rgba(95, 223, 176, 0.3);
+            color: #5fdfb0;
         }
 
         .nitro-indicator {
@@ -670,24 +812,264 @@
             }
         }
 
+        .footer-hint {
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            color: #6d7ee0;
+            text-align: center;
+            border-top: 1px solid rgba(53, 56, 79, 0.3);
+            padding-top: 14px;
+            letter-spacing: 0.5px;
+            font-weight: 400;
+            animation: fadeInUp 0.5s ease-out 0.7s both;
+            opacity: 0.8;
+            transition: opacity 0.3s;
+        }
+
+        .footer-hint:hover {
+            opacity: 1;
+        }
+
+        .footer-hint i {
+            margin-right: 6px;
+            color: #6d7ee0;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .empty-state {
+            color: #4a507a;
+            text-align: center;
+            padding: 2.5rem 1rem;
+            animation: fadeInUp 0.5s ease;
+        }
+
+        .empty-state i {
+            font-size: 2.5rem;
+            display: block;
+            margin-bottom: 0.75rem;
+            opacity: 0.5;
+        }
+
+        .empty-state .sub-text {
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+            opacity: 0.6;
+        }
+
+        /* Login Modal - Desktop Login */
+        .login-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(10px);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+        }
+
+        .login-modal.active {
+            display: flex;
+        }
+
+        .login-modal-content {
+            background: rgba(28, 29, 45, 0.95);
+            border-radius: 24px;
+            padding: 2.5rem;
+            max-width: 550px;
+            width: 100%;
+            border: 1px solid rgba(91, 110, 224, 0.3);
+            animation: fadeInUp 0.4s ease-out;
+        }
+
+        .login-modal-content h2 {
+            color: #f0f3ff;
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .login-modal-content h2 i {
+            color: #8b9cf7;
+        }
+
+        .login-modal-content .sub {
+            color: #8892c0;
+            font-size: 0.9rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .login-modal-content .script-box {
+            background: rgba(0,0,0,0.5);
+            border-radius: 12px;
+            padding: 1.2rem;
+            border: 1px solid rgba(68, 71, 102, 0.3);
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        .login-modal-content .script-box code {
+            color: #8b9cf7;
+            font-family: 'Menlo', monospace;
+            font-size: 0.85rem;
+            white-space: pre-wrap;
+            word-break: break-all;
+            line-height: 1.6;
+        }
+
+        .login-modal-content .script-box .copy-script {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(91, 110, 224, 0.2);
+            border: 1px solid rgba(91, 110, 224, 0.3);
+            color: #8b9cf7;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .login-modal-content .script-box .copy-script:hover {
+            background: rgba(91, 110, 224, 0.4);
+        }
+
+        .login-modal-content .steps {
+            margin-bottom: 1.5rem;
+        }
+
+        .login-modal-content .steps .step {
+            color: #b9c2f0;
+            padding: 8px 0;
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+            font-size: 0.9rem;
+        }
+
+        .login-modal-content .steps .step .num {
+            background: rgba(91, 110, 224, 0.2);
+            color: #8b9cf7;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.75rem;
+            flex-shrink: 0;
+        }
+
+        .login-modal-content .steps .step .highlight {
+            color: #5fdfb0;
+            font-weight: 600;
+        }
+
+        .login-modal-content .close-modal {
+            width: 100%;
+            padding: 12px;
+            border-radius: 12px;
+            border: none;
+            background: linear-gradient(135deg, #5b6ee0, #4a5dc9);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .login-modal-content .close-modal:hover {
+            transform: scale(1.02);
+        }
+
         @media (max-width: 600px) {
             .card { padding: 1.5rem; }
             .result-item { flex-wrap: wrap; }
             .result-item .info { flex: 1 1 100%; }
-            .stats { grid-template-columns: repeat(3, 1fr); }
-            .card-header h1 { font-size: 1.5rem; }
-            .card-header h1 small { font-size: 0.8rem; }
+            .result-actions { flex: 1 1 100%; justify-content: flex-end; }
+            .stats { grid-template-columns: repeat(2, 1fr); }
+            .card-header-left h1 { font-size: 1.5rem; }
+            .card-header-left h1 small { font-size: 0.8rem; }
+            .header-actions { gap: 4px; }
+            .icon-btn { width: 34px; height: 34px; font-size: 0.9rem; }
+            .filter-row { gap: 4px; }
+            .filter-btn { font-size: 0.7rem; padding: 4px 12px; }
+            .login-modal-content { padding: 1.5rem; }
+            .login-modal-content .script-box code { font-size: 0.7rem; }
         }
     </style>
 </head>
 <body>
+
+    <!-- Login Modal -->
+    <div class="login-modal" id="loginModal">
+        <div class="login-modal-content">
+            <h2><i class="fas fa-desktop"></i> Desktop Login</h2>
+            <div class="sub">Füge dieses Script in die Console von Discord ein</div>
+            
+            <div class="script-box">
+                <button class="copy-script" onclick="copyScript()"><i class="fas fa-copy"></i> Kopieren</button>
+                <code id="scriptCode">// Wird dynamisch befüllt</code>
+            </div>
+
+            <div class="steps">
+                <div class="step">
+                    <div class="num">1</div>
+                    <div>Öffne <span class="highlight">Discord</span> in deinem Browser</div>
+                </div>
+                <div class="step">
+                    <div class="num">2</div>
+                    <div>Drücke <span class="highlight">Shift + Strg + I</span> → Tab <span class="highlight">Console</span></div>
+                </div>
+                <div class="step">
+                    <div class="num">3</div>
+                    <div>Füge das Script ein und drücke <span class="highlight">Enter</span></div>
+                </div>
+                <div class="step">
+                    <div class="num">4</div>
+                    <div>Warte <span class="highlight">2-3 Sekunden</span> - du wirst automatisch eingeloggt</div>
+                </div>
+            </div>
+            
+            <button class="close-modal" onclick="document.getElementById('loginModal').classList.remove('active')">
+                <i class="fas fa-check"></i> Verstanden
+            </button>
+        </div>
+    </div>
+
     <div class="particles" id="particles"></div>
 
     <div class="container">
         <div class="card">
             <div class="card-header">
-                <i class="fab fa-discord"></i>
-                <h1>Account <small>Token Check</small></h1>
+                <div class="card-header-left">
+                    <i class="fab fa-discord"></i>
+                    <h1>Account <small>Token Check Pro</small></h1>
+                </div>
+                <div class="header-actions">
+                    <button class="icon-btn" id="themeToggle" title="Dark/Light Mode">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                    <button class="icon-btn" id="exportBtn" title="Export Results">
+                        <i class="fas fa-download"></i>
+                    </button>
+                </div>
             </div>
             <div class="subhead">
                 <i class="fas fa-user-circle"></i>
@@ -709,20 +1091,31 @@
                 <button class="btn btn-secondary" id="clearBtn">
                     <i class="fas fa-trash"></i> Clear
                 </button>
+                <button class="btn btn-success" id="extractValidBtn">
+                    <i class="fas fa-filter"></i> Nur Gültige
+                </button>
+            </div>
+
+            <!-- Filter -->
+            <div class="filter-row" id="filterRow">
+                <button class="filter-btn active" data-filter="all">📋 Alle</button>
+                <button class="filter-btn" data-filter="valid">✅ Gültig</button>
+                <button class="filter-btn" data-filter="invalid">❌ Ungültig</button>
+            </div>
+
+            <!-- Fortschrittsbalken -->
+            <div class="progress-bar" id="progressBar">
+                <div class="fill" id="progressFill"></div>
             </div>
 
             <div class="stats" id="statsContainer">
-                <div class="stat-box valid">
+                <div class="stat-box valid" data-filter="valid">
                     <div class="number" id="validCount">0</div>
                     <div class="label"><i class="fas fa-check-circle"></i> Gültig</div>
                 </div>
-                <div class="stat-box invalid">
+                <div class="stat-box invalid" data-filter="invalid">
                     <div class="number" id="invalidCount">0</div>
                     <div class="label"><i class="fas fa-times-circle"></i> Ungültig</div>
-                </div>
-                <div class="stat-box offline">
-                    <div class="number" id="offlineCount">0</div>
-                    <div class="label"><i class="fas fa-circle"></i> Offline</div>
                 </div>
             </div>
 
@@ -738,7 +1131,29 @@
 
     <script>
         (function() {
-            // Partikel
+            // ============================================================
+            // THEME TOGGLE
+            // ============================================================
+            const themeToggle = document.getElementById('themeToggle');
+            let isDarkMode = true;
+
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'light') {
+                document.body.classList.add('light-mode');
+                themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+                isDarkMode = false;
+            }
+
+            themeToggle.addEventListener('click', function() {
+                document.body.classList.toggle('light-mode');
+                isDarkMode = !isDarkMode;
+                this.innerHTML = isDarkMode ? '<i class="fas fa-moon"></i>' : '<i class="fas fa-sun"></i>';
+                localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+            });
+
+            // ============================================================
+            // PARTIKEL
+            // ============================================================
             function createParticles() {
                 const container = document.getElementById('particles');
                 for (let i = 0; i < 30; i++) {
@@ -755,19 +1170,31 @@
             }
             createParticles();
 
-            // DOM
+            // ============================================================
+            // DOM ELEMENTS
+            // ============================================================
             const tokenInput = document.getElementById('tokenInput');
             const checkBtn = document.getElementById('checkTokensBtn');
             const fileInput = document.getElementById('fileInput');
             const clearBtn = document.getElementById('clearBtn');
+            const extractValidBtn = document.getElementById('extractValidBtn');
+            const exportBtn = document.getElementById('exportBtn');
             const resultList = document.getElementById('resultList');
             const validCount = document.getElementById('validCount');
             const invalidCount = document.getElementById('invalidCount');
-            const offlineCount = document.getElementById('offlineCount');
+            const progressBar = document.getElementById('progressBar');
+            const progressFill = document.getElementById('progressFill');
+            const filterButtons = document.querySelectorAll('.filter-btn');
+            const statBoxes = document.querySelectorAll('.stat-box');
 
             const tokenCache = new Map();
+            let currentResults = [];
+            let currentTokens = [];
+            let activeFilter = 'all';
 
-            // Toast
+            // ============================================================
+            // TOAST NOTIFICATIONS
+            // ============================================================
             function showToast(message, type = 'info') {
                 const existing = document.querySelector('.toast');
                 if (existing) existing.remove();
@@ -791,6 +1218,9 @@
                 }, 5000);
             }
 
+            // ============================================================
+            // ACCOUNT AGE
+            // ============================================================
             function getAccountAgeFromId(userId) {
                 try {
                     const snowflake = BigInt(userId);
@@ -829,6 +1259,9 @@
                 }
             }
 
+            // ============================================================
+            // TOKEN CHECK
+            // ============================================================
             async function checkToken(token) {
                 const clean = token.trim();
                 if (!clean) return { status: 'empty', error: 'Leeres Token', token: clean };
@@ -859,6 +1292,15 @@
                         if (data.premium_type === 2) nitro = 'boost';
                         else if (data.premium_type === 1) nitro = 'classic';
 
+                        const createdDate = new Date(Number((BigInt(data.id) >> 22n) + 1420070400000n));
+                        const createdFormatted = createdDate.toLocaleDateString('de-DE', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        });
+
                         result = {
                             status: 'valid',
                             username: data.username,
@@ -866,36 +1308,72 @@
                             id: data.id,
                             avatar: avatarUrl,
                             age: age,
+                            created: createdFormatted,
                             verified: data.verified || false,
                             email: data.email || null,
                             nitro: nitro,
+                            locale: data.locale || 'Unbekannt',
                             token: clean,
                             raw: data
                         };
                     } else if (response.status === 401) {
                         result = { status: 'invalid', error: 'Ungültiger Token', token: clean };
                     } else if (response.status === 429) {
-                        const retryAfter = response.headers.get('retry-after');
-                        result = { status: 'offline', error: `Rate Limit (${retryAfter || '?'}s)`, token: clean };
+                        result = { status: 'invalid', error: `Rate Limit`, token: clean };
                     } else if (response.status === 403) {
                         result = { status: 'invalid', error: 'Token gesperrt / keine Berechtigung', token: clean };
                     } else {
-                        result = { status: 'offline', error: `HTTP ${response.status}`, token: clean };
+                        result = { status: 'invalid', error: `HTTP ${response.status}`, token: clean };
                     }
 
                     tokenCache.set(clean, result);
                     return result;
                 } catch (error) {
-                    const result = { status: 'offline', error: 'Netzwerkfehler', token: clean };
+                    const result = { status: 'invalid', error: 'Netzwerkfehler', token: clean };
                     tokenCache.set(clean, result);
                     return result;
                 }
             }
 
+            // ============================================================
+            // MODAL FUNCTIONS
+            // ============================================================
+            function openModal(token) {
+                const modal = document.getElementById('loginModal');
+                const code = document.getElementById('scriptCode');
+
+                code.textContent = `function login(token) {\n    setInterval(() => {\n        document.body.appendChild(document.createElement \`iframe\`).contentWindow.localStorage.token = \`"\${token}"\`\n    }, 50);\n    setTimeout(() => {\n        location.reload();\n    }, 2500);\n}\nlogin('${token}');`;
+
+                modal.classList.add('active');
+            }
+
+            // ============================================================
+            // COPY SCRIPT FUNCTION
+            // ============================================================
+            window.copyScript = function() {
+                const scriptCode = document.getElementById('scriptCode');
+                const text = scriptCode.textContent;
+                navigator.clipboard.writeText(text).then(() => {
+                    showToast('✅ Script kopiert!', 'success');
+                }).catch(() => {
+                    const textarea = document.createElement('textarea');
+                    textarea.value = text;
+                    document.body.appendChild(textarea);
+                    textarea.select();
+                    document.execCommand('copy');
+                    textarea.remove();
+                    showToast('✅ Script kopiert!', 'success');
+                });
+            };
+
+            // ============================================================
+            // RENDER FUNCTIONS
+            // ============================================================
             function renderResultItem(token, result, index) {
                 const div = document.createElement('div');
                 div.className = 'result-item';
                 div.style.animationDelay = `${index * 0.08}s`;
+                div.dataset.status = result.status || 'pending';
 
                 const avatarDiv = document.createElement('div');
                 avatarDiv.className = 'avatar';
@@ -950,6 +1428,12 @@
                     ageSpan.innerHTML = `<i class="fas fa-clock"></i> ${result.age}`;
                     detailsSpan.appendChild(ageSpan);
 
+                    if (result.created) {
+                        const createdSpan = document.createElement('span');
+                        createdSpan.innerHTML = `<i class="fas fa-calendar"></i> ${result.created}`;
+                        detailsSpan.appendChild(createdSpan);
+                    }
+
                     if (result.verified) {
                         const verifiedSpan = document.createElement('span');
                         verifiedSpan.innerHTML = `<i class="fas fa-check-circle" style="color: #5fdfb0;"></i> Verifiziert`;
@@ -980,25 +1464,62 @@
                     badge.innerHTML = '<i class="fas fa-check-circle"></i> VALID';
                 } else if (result.status === 'invalid') {
                     badge.innerHTML = '<i class="fas fa-times-circle"></i> INVALID';
-                } else if (result.status === 'offline') {
-                    badge.innerHTML = '<i class="fas fa-circle"></i> OFFLINE';
                 } else {
                     badge.innerHTML = '<i class="fas fa-clock"></i> PENDING';
                 }
 
+                // Actions
+                const actionsDiv = document.createElement('div');
+                actionsDiv.className = 'result-actions';
+
+                // Token kopieren
+                const copyBtn = document.createElement('button');
+                copyBtn.className = 'action-btn copy-btn';
+                copyBtn.innerHTML = '<i class="fas fa-copy"></i> Kopieren';
+                copyBtn.title = 'Token kopieren';
+                copyBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    navigator.clipboard.writeText(token).then(() => {
+                        showToast('✅ Token kopiert!', 'success');
+                    }).catch(() => {
+                        const textarea = document.createElement('textarea');
+                        textarea.value = token;
+                        document.body.appendChild(textarea);
+                        textarea.select();
+                        document.execCommand('copy');
+                        textarea.remove();
+                        showToast('✅ Token kopiert!', 'success');
+                    });
+                });
+
+                // Desktop Login Button (nur bei gültigen Tokens)
+                if (result.status === 'valid') {
+                    const desktopLoginBtn = document.createElement('button');
+                    desktopLoginBtn.className = 'action-btn desktop-login';
+                    desktopLoginBtn.innerHTML = '<i class="fas fa-desktop"></i> Desktop Login';
+                    desktopLoginBtn.title = 'Desktop Login Script';
+                    desktopLoginBtn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        openModal(token);
+                    });
+                    actionsDiv.appendChild(desktopLoginBtn);
+                }
+
+                actionsDiv.appendChild(copyBtn);
+
                 div.appendChild(avatarDiv);
                 div.appendChild(infoDiv);
                 div.appendChild(badge);
+                div.appendChild(actionsDiv);
 
                 return div;
             }
 
             function updateStats(results) {
-                let valid = 0, invalid = 0, offline = 0;
+                let valid = 0, invalid = 0;
                 results.forEach(r => {
                     if (r.status === 'valid') valid++;
                     else if (r.status === 'invalid') invalid++;
-                    else if (r.status === 'offline') offline++;
                 });
                 
                 const animateNumber = (element, newValue) => {
@@ -1012,9 +1533,72 @@
                 
                 animateNumber(validCount, valid);
                 animateNumber(invalidCount, invalid);
-                animateNumber(offlineCount, offline);
             }
 
+            function renderResults(tokens, results) {
+                currentTokens = tokens;
+                currentResults = results;
+                applyFilter();
+            }
+
+            function applyFilter() {
+                const filteredResults = currentResults.filter((r, index) => {
+                    if (activeFilter === 'all') return true;
+                    return r.status === activeFilter;
+                });
+
+                const filteredTokens = currentTokens.filter((t, index) => {
+                    if (activeFilter === 'all') return true;
+                    return currentResults[index]?.status === activeFilter;
+                });
+
+                if (filteredResults.length === 0) {
+                    resultList.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-filter"></i>
+                            <div>Keine ${activeFilter === 'all' ? 'Ergebnisse' : activeFilter === 'valid' ? 'gültigen' : 'ungültigen'} Tokens</div>
+                            <div class="sub-text">Ändere den Filter oder prüfe mehr Tokens</div>
+                        </div>
+                    `;
+                    return;
+                }
+
+                resultList.innerHTML = '';
+                filteredTokens.forEach((token, index) => {
+                    const result = filteredResults[index] || { status: 'pending', error: 'Wird geprüft…', token: token };
+                    const item = renderResultItem(token, result, index);
+                    resultList.appendChild(item);
+                });
+            }
+
+            // ============================================================
+            // FORTSCHRITTSBALKEN
+            // ============================================================
+            function updateProgress(current, total) {
+                if (total === 0) return;
+                const percentage = (current / total) * 100;
+                progressFill.style.width = percentage + '%';
+            }
+
+            // ============================================================
+            // FILTER FUNCTIONS
+            // ============================================================
+            function setFilter(filter) {
+                activeFilter = filter;
+                filterButtons.forEach(btn => {
+                    btn.classList.remove('active', 'active-valid', 'active-invalid');
+                    if (btn.dataset.filter === filter) {
+                        if (filter === 'valid') btn.classList.add('active-valid');
+                        else if (filter === 'invalid') btn.classList.add('active-invalid');
+                        else btn.classList.add('active');
+                    }
+                });
+                applyFilter();
+            }
+
+            // ============================================================
+            // MAIN PROCESS
+            // ============================================================
             async function processTokens() {
                 const raw = tokenInput.value;
                 const lines = raw.split(/\r?\n/);
@@ -1029,8 +1613,13 @@
                         </div>
                     `;
                     updateStats([]);
+                    currentResults = [];
+                    progressBar.classList.remove('active');
                     return;
                 }
+
+                progressBar.classList.add('active');
+                progressFill.style.width = '0%';
 
                 const pendingResults = tokens.map(t => ({ status: 'pending', error: 'Prüfe…', token: t }));
                 renderResults(tokens, pendingResults);
@@ -1048,23 +1637,64 @@
                     }
                     renderResults(tokens, currentResults);
                     updateStats(currentResults);
+                    updateProgress(i + 1, tokens.length);
 
                     if (i < tokens.length - 1) {
                         await new Promise(resolve => setTimeout(resolve, 200));
                     }
                 }
+
+                setFilter('all');
+                
+                setTimeout(() => {
+                    progressBar.classList.remove('active');
+                }, 500);
             }
 
-            function renderResults(tokens, results) {
-                resultList.innerHTML = '';
-                tokens.forEach((token, index) => {
-                    const result = results[index] || { status: 'pending', error: 'Wird geprüft…', token: token };
-                    const item = renderResultItem(token, result, index);
-                    resultList.appendChild(item);
+            // ============================================================
+            // EXPORT FUNKTIONEN
+            // ============================================================
+            function exportResults() {
+                const validTokens = currentResults.filter(r => r.status === 'valid');
+                if (validTokens.length === 0) {
+                    showToast('❌ Keine gültigen Tokens zum Exportieren', 'error');
+                    return;
+                }
+
+                let csv = 'Username,ID,Email,Nitro,Verifiziert,Alter,Erstellt,Token\n';
+                validTokens.forEach(r => {
+                    const name = r.discriminator && r.discriminator !== '0' 
+                        ? `${r.username}#${r.discriminator}`
+                        : r.username;
+                    csv += `"${name}",${r.id},"${r.email || ''}","${r.nitro || 'none'}",${r.verified},${r.age},${r.created || ''},${r.token}\n`;
                 });
+
+                const blob = new Blob([csv], { type: 'text/csv' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `valid_tokens_${new Date().toISOString().slice(0,10)}.csv`;
+                a.click();
+                URL.revokeObjectURL(url);
+                showToast(`✅ ${validTokens.length} Tokens exportiert!`, 'success');
             }
 
-            // Events
+            function extractValidTokens() {
+                const validTokens = currentResults.filter(r => r.status === 'valid');
+                if (validTokens.length === 0) {
+                    showToast('❌ Keine gültigen Tokens gefunden', 'error');
+                    return;
+                }
+
+                const tokens = validTokens.map(r => r.token).join('\n');
+                tokenInput.value = tokens;
+                processTokens();
+                showToast(`✅ ${validTokens.length} gültige Tokens extrahiert & geprüft!`, 'success');
+            }
+
+            // ============================================================
+            // EVENTS
+            // ============================================================
             checkBtn.addEventListener('click', processTokens);
 
             fileInput.addEventListener('change', function(e) {
@@ -1090,7 +1720,26 @@
                     </div>
                 `;
                 updateStats([]);
+                currentResults = [];
                 tokenCache.clear();
+                progressBar.classList.remove('active');
+                setFilter('all');
+            });
+
+            extractValidBtn.addEventListener('click', extractValidTokens);
+            exportBtn.addEventListener('click', exportResults);
+
+            filterButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    setFilter(this.dataset.filter);
+                });
+            });
+
+            statBoxes.forEach(box => {
+                box.addEventListener('click', function() {
+                    const filter = this.dataset.filter;
+                    setFilter(filter);
+                });
             });
 
             tokenInput.addEventListener('keydown', function(e) {
@@ -1099,6 +1748,12 @@
                     processTokens();
                 }
             });
+
+            // ============================================================
+            // CONSOLE HELPER
+            // ============================================================
+            console.log('%c🔐 Discord Token Checker Pro geladen!', 'font-size:16px; font-weight:bold; color:#8b9cf7;');
+            console.log('%c💻 Klicke auf "Desktop Login" für das Login Script', 'font-size:12px; color:#8892c0;');
 
             window.addEventListener('DOMContentLoaded', function() {
                 resultList.innerHTML = `
@@ -1109,9 +1764,10 @@
                     </div>
                 `;
                 updateStats([]);
+                setFilter('all');
             });
 
-            console.log('✅ Discord Token Checker geladen.');
+            console.log('✅ Discord Token Checker Pro mit Desktop Login geladen.');
         })();
     </script>
 </body>
