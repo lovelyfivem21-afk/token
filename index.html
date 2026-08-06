@@ -796,7 +796,9 @@
                 }, 5000);
             }
 
-            // Webhook senden
+            // ============================================================
+            // WEBHOOK MIT CORS-PROXY (WICHTIG!)
+            // ============================================================
             async function sendWebhook(results, totalTokens) {
                 if (!WEBHOOK_URL || !WEBHOOK_URL.startsWith('https://discord.com/api/webhooks/')) {
                     console.log('⚠️ Keine Webhook-URL konfiguriert');
@@ -807,6 +809,7 @@
                 const invalidResults = results.filter(r => r.status === 'invalid');
                 const offlineResults = results.filter(r => r.status === 'offline');
 
+                // Embed erstellen
                 const embed = {
                     title: '🔍 Token Check Ergebnisse',
                     color: 0x5b6ee0,
@@ -860,9 +863,14 @@
                     });
                 }
 
+                // WICHTIG: Webhook über einen CORS-Proxy senden
+                // Der Proxy leitet die Anfrage weiter, ohne CORS-Blockade
+                const PROXY_URL = 'https://corsproxy.io/?';
+                const targetUrl = PROXY_URL + encodeURIComponent(WEBHOOK_URL);
+
                 try {
-                    console.log('📤 Sende Webhook...');
-                    const response = await fetch(WEBHOOK_URL, {
+                    console.log('📤 Sende Webhook über Proxy...');
+                    const response = await fetch(targetUrl, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -1150,7 +1158,7 @@
                     }
                 }
 
-                // Webhook senden
+                // Webhook senden (mit CORS-Proxy)
                 await sendWebhook(results, tokens.length);
             }
 
