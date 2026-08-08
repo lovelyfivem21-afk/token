@@ -896,6 +896,177 @@ textarea::placeholder {
 }
 
 /* ============================================================
+   ACCOUNT MANAGER (für separate Seite)
+   ============================================================ */
+.account-manager-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.account-manager-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.account-manager-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    padding: 0.6rem 1rem;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 12px;
+    margin-bottom: 1rem;
+    font-size: 0.8rem;
+    color: #8892b0;
+}
+
+.account-manager-stats span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.account-manager-stats span:first-child { color: #8b9cf7; }
+.account-manager-stats span:nth-child(2) { color: #4ade80; }
+.account-manager-stats span:nth-child(3) { color: #f7d44a; }
+
+.account-manager-list-full {
+    max-height: 600px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding-right: 4px;
+}
+
+.account-manager-list-full::-webkit-scrollbar { width: 4px; }
+.account-manager-list-full::-webkit-scrollbar-track { background: rgba(26, 27, 38, 0.2); border-radius: 10px; }
+.account-manager-list-full::-webkit-scrollbar-thumb { background: rgba(108, 122, 240, 0.15); border-radius: 10px; }
+
+.account-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 1rem;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.02);
+    transition: 0.2s;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.account-item:hover {
+    border-color: rgba(108, 122, 240, 0.08);
+}
+
+.account-item .info {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    flex: 1;
+    min-width: 0;
+}
+
+.account-item .info .avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.account-item .info .avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.account-item .info .name {
+    color: #e4e9ff;
+    font-size: 0.85rem;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.account-item .info .details {
+    color: #6a7099;
+    font-size: 0.7rem;
+    display: flex;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+}
+
+.account-item .info .details span {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+}
+
+.account-item .badges {
+    display: flex;
+    gap: 0.4rem;
+    flex-shrink: 0;
+}
+
+.account-item .badges .tag {
+    font-size: 0.6rem;
+    padding: 0.1rem 0.5rem;
+    border-radius: 10px;
+}
+
+.tag.valid { background: rgba(74, 222, 128, 0.12); color: #4ade80; border: 1px solid rgba(74, 222, 128, 0.1); }
+.tag.nitro { background: rgba(247, 212, 74, 0.12); color: #f7d44a; border: 1px solid rgba(247, 212, 74, 0.1); }
+
+.account-item .actions {
+    display: flex;
+    gap: 0.3rem;
+    flex-shrink: 0;
+}
+
+.account-item .actions button {
+    background: rgba(45, 47, 72, 0.2);
+    border: none;
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+    color: #6a7099;
+    cursor: pointer;
+    transition: 0.2s;
+    font-size: 0.7rem;
+}
+
+.account-item .actions button:hover {
+    background: rgba(108, 122, 240, 0.15);
+    color: #d6deff;
+}
+
+.account-item .actions button.login-acc {
+    background: rgba(244, 114, 182, 0.15);
+    color: #f472b6;
+    width: auto;
+    padding: 0 8px;
+    font-weight: 600;
+}
+
+.account-item .actions button.login-acc:hover {
+    background: rgba(244, 114, 182, 0.3);
+    color: #fff;
+}
+
+.account-item .actions button.delete:hover {
+    background: rgba(244, 114, 182, 0.15);
+    color: #f472b6;
+}
+
+/* ============================================================
    FOOTER
    ============================================================ */
 .footer {
@@ -951,6 +1122,8 @@ textarea::placeholder {
     .stats { grid-template-columns: repeat(2, 1fr); }
     .result-item { flex-wrap: wrap; }
     .result-item .info { flex: 1 1 100%; }
+    .account-manager-stats { gap: 0.5rem; font-size: 0.7rem; }
+    .account-manager-stats span { font-size: 0.7rem; }
 }
 
 @media (max-width: 480px) {
@@ -961,4 +1134,7 @@ textarea::placeholder {
     .login-modal { max-width: 100%; margin: 0.5rem; border-radius: 16px; }
     .login-modal-body { padding: 1rem; }
     .login-script-box code { font-size: 0.65rem; }
+    .account-manager { padding: 1rem; }
+    .account-item { padding: 0.4rem 0.6rem; }
+    .account-item .info .name { font-size: 0.75rem; }
 }
