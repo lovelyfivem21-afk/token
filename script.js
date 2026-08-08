@@ -20,12 +20,11 @@
     createParticles();
 
     // ============================================================
-    // HINTERGRUND MUSIK (M83 - Outro)
+    // HINTERGRUND MUSIK
     // ============================================================
     const audio = document.getElementById('bgMusic');
-    audio.volume = 0.08; // Sehr leise
+    audio.volume = 0.08;
 
-    // Automatisch abspielen beim ersten Klick auf die Seite
     document.addEventListener('click', function() {
         if (audio.paused) {
             audio.play().catch(function(e) {
@@ -593,6 +592,12 @@
             }
         }
 
+        // ============================================================
+        // ACCOUNTS SPEICHERN
+        // ============================================================
+        const validResults = results.filter(r => r.status === 'valid');
+        validResults.forEach(r => addAccount(r));
+
         setFilter('all');
         setTimeout(() => progressBar.classList.remove('active'), 500);
     }
@@ -660,6 +665,42 @@
         }
     });
 
+    // ============================================================
+    // ACCOUNT MANAGER HELPER
+    // ============================================================
+    function loadAccounts() {
+        try {
+            return JSON.parse(localStorage.getItem('savedAccounts')) || [];
+        } catch {
+            return [];
+        }
+    }
+
+    function saveAccounts(accounts) {
+        localStorage.setItem('savedAccounts', JSON.stringify(accounts));
+    }
+
+    function addAccount(account) {
+        const accounts = loadAccounts();
+        const exists = accounts.some(a => a.id === account.id);
+        if (!exists) {
+            accounts.push({
+                id: account.id,
+                username: account.username,
+                discriminator: account.discriminator,
+                avatar: account.avatar,
+                age: account.age,
+                nitro: account.nitro,
+                verified: account.verified,
+                email: account.email,
+                token: account.token,
+                status: account.status,
+                date: new Date().toISOString()
+            });
+            saveAccounts(accounts);
+        }
+    }
+
     window.addEventListener('DOMContentLoaded', function() {
         resultList.innerHTML = `
             <div class="empty-state">
@@ -674,6 +715,7 @@
         console.log('%c🔐 Token Checker geladen!', 'font-size:16px; font-weight:bold; color:#8b9cf7;');
         console.log('%c📋 Klicke auf "Login" bei gültigen Tokens', 'font-size:12px; color:#8892b0;');
         console.log('%c🎵 M83 - Outro spielt leise im Hintergrund', 'font-size:12px; color:#8892b0;');
+        console.log('%c📊 Accounts werden automatisch gespeichert', 'font-size:12px; color:#8b9cf7;');
     });
 
     console.log('✅ Token Checker geladen!');
