@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Account Manager</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect x='5' y='5' width='90' height='90' rx='20' fill='%236c7af0'/><rect x='12' y='12' width='76' height='76' rx='14' fill='%230b0d1a'/><text x='50' y='68' font-family='Arial, sans-serif' font-size='40' font-weight='bold' text-anchor='middle' fill='%236c7af0' letter-spacing='2'>DX</text><text x='50' y='88' font-family='Arial, sans-serif' font-size='12' font-weight='bold' text-anchor='middle' fill='%234a507a' letter-spacing='4'>SETUP</text></svg>" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+    <!-- ===== ANIMIERTER HINTERGRUND ===== -->
+    <div class="bg-container">
+        <div class="bg-orbe bg-orbe-1"></div>
+        <div class="bg-orbe bg-orbe-2"></div>
+        <div class="bg-orbe bg-orbe-3"></div>
+        <div class="bg-orbe bg-orbe-4"></div>
+        <div class="bg-orbe bg-orbe-5"></div>
+        <div class="bg-grid"></div>
+        <div class="bg-particles" id="particles"></div>
+    </div>
+
+    <!-- ===== AUDIO ===== -->
+    <audio id="bgMusic" loop preload="auto" volume="0.08">
+        <source src="outro.mp3" type="audio/mpeg">
+    </audio>
+
+    <div class="container">
+
+        <!-- ===== HEADER ===== -->
+        <header class="header">
+            <h1><span class="highlight">Account Manager</span></h1>
+            <p>Verwalte alle deine geprüften Discord Accounts</p>
+            <div style="margin-top:0.5rem;">
+                <a href="index.html" class="btn btn-secondary" style="text-decoration:none;padding:0.3rem 1.2rem;font-size:0.8rem;">
+                    <i class="fas fa-arrow-left"></i> Zurück zum Checker
+                </a>
+            </div>
+        </header>
+
+        <!-- ===== ACCOUNT MANAGER ===== -->
+        <div class="card" style="padding:1.5rem;">
+
+            <div class="account-manager-header">
+                <h3 style="color:#f0f3ff;font-size:1.1rem;display:flex;align-items:center;gap:0.6rem;">
+                    <i class="fas fa-database" style="color:#8b9cf7;"></i> Account Manager
+                </h3>
+                <div class="account-manager-actions">
+                    <button class="btn btn-secondary" id="exportAccountsBtn" style="padding:0.3rem 1rem;font-size:0.75rem;">
+                        <i class="fas fa-download"></i> Export
+                    </button>
+                    <button class="btn btn-secondary" id="clearAccountsBtn" style="padding:0.3rem 1rem;font-size:0.75rem;color:#f472b6;">
+                        <i class="fas fa-trash"></i> Alle löschen
+                    </button>
+                </div>
+            </div>
+
+            <div class="account-manager-stats">
+                <span>📊 <span id="totalAccounts">0</span> Accounts</span>
+                <span>✅ <span id="validAccounts">0</span> gültig</span>
+                <span>👑 <span id="nitroAccounts">0</span> Nitro</span>
+            </div>
+
+            <div class="account-manager-list-full" id="accountManagerList">
+                <div class="empty-state" style="padding:2rem;">
+                    <i class="fas fa-inbox"></i>
+                    <div>Keine Accounts gespeichert</div>
+                    <div class="sub-text">Prüfe Tokens auf der Hauptseite, um sie zu speichern</div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ===== FOOTER ===== -->
+        <div class="footer">
+            <span><i class="fas fa-code"></i> by Dxsetup</span>
+        </div>
+
+    </div>
+
+    <script src="accounts.js"></script>
+</body>
+</html>
