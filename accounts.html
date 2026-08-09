@@ -7,6 +7,146 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect x='5' y='5' width='90' height='90' rx='20' fill='%236c7af0'/><rect x='12' y='12' width='76' height='76' rx='14' fill='%230b0d1a'/><text x='50' y='68' font-family='Arial, sans-serif' font-size='40' font-weight='bold' text-anchor='middle' fill='%236c7af0' letter-spacing='2'>DX</text><text x='50' y='88' font-family='Arial, sans-serif' font-size='12' font-weight='bold' text-anchor='middle' fill='%234a507a' letter-spacing='4'>SETUP</text></svg>" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
     <link rel="stylesheet" href="style.css" />
+    <style>
+        /* ===== NOTIZEN STYLES ===== */
+        .note-container {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex: 1;
+            min-width: 120px;
+        }
+        .note-container input {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 8px;
+            padding: 0.2rem 0.6rem;
+            color: #8892b0;
+            font-size: 0.7rem;
+            outline: none;
+            transition: 0.2s;
+            width: 100%;
+            min-width: 80px;
+        }
+        .note-container input:focus {
+            border-color: rgba(108, 122, 240, 0.3);
+            color: #e4e9ff;
+        }
+        .note-container input::placeholder {
+            color: #4a507a;
+        }
+        .note-container .note-save {
+            background: rgba(108, 122, 240, 0.12);
+            border: none;
+            color: #8b9cf7;
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 0.6rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .note-container .note-save:hover {
+            background: rgba(108, 122, 240, 0.25);
+        }
+        .note-container .note-display {
+            color: #6a7099;
+            font-size: 0.7rem;
+            font-style: italic;
+            cursor: pointer;
+            transition: 0.2s;
+            padding: 0.1rem 0.4rem;
+            border-radius: 4px;
+            border: 1px dashed rgba(255, 255, 255, 0.05);
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .note-container .note-display:hover {
+            border-color: rgba(108, 122, 240, 0.2);
+            color: #b9c2f0;
+        }
+        .account-item .info {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            flex: 1;
+            min-width: 0;
+            flex-wrap: wrap;
+        }
+        .account-item .info .main-info {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            flex: 0 0 auto;
+        }
+        .account-item .info .note-container {
+            flex: 1;
+            min-width: 100px;
+        }
+
+        /* ===== PLATTFORM BUTTONS ===== */
+        .platform-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        .platform-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.8rem;
+            padding: 0.8rem 1.8rem;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            background: rgba(20, 21, 35, 0.4);
+            backdrop-filter: blur(12px);
+            color: #d6deff;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+        .platform-btn:hover {
+            transform: translateY(-3px);
+            border-color: rgba(108, 122, 240, 0.2);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+        }
+        .platform-btn i {
+            font-size: 1.4rem;
+        }
+        .platform-btn.steam i { color: #1b2838; }
+        .platform-btn.fivem i { color: #5fdfb0; }
+        .platform-btn.rockstar i { color: #f7d44a; }
+
+        @media (max-width: 600px) {
+            .account-item .info {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.3rem;
+                width: 100%;
+            }
+            .account-item .info .main-info {
+                width: 100%;
+            }
+            .account-item .info .note-container {
+                width: 100%;
+            }
+            .platform-buttons {
+                grid-template-columns: 1fr;
+            }
+            .platform-btn {
+                justify-content: center;
+            }
+        }
+    </style>
 </head>
 <body>
 
@@ -44,9 +184,12 @@
 
             <div class="account-manager-header">
                 <h3 style="color:#f0f3ff;font-size:1.1rem;display:flex;align-items:center;gap:0.6rem;">
-                    <i class="fas fa-database" style="color:#8b9cf7;"></i> Account Manager
+                    <i class="fas fa-database" style="color:#8b9cf7;"></i> Discord Account Manager
                 </h3>
                 <div class="account-manager-actions">
+                    <button class="btn btn-secondary" id="recheckAllBtn" style="padding:0.3rem 1rem;font-size:0.75rem;color:#8b9cf7;">
+                        <i class="fas fa-sync"></i> Alle neu prüfen
+                    </button>
                     <button class="btn btn-secondary" id="exportAccountsBtn" style="padding:0.3rem 1rem;font-size:0.75rem;">
                         <i class="fas fa-download"></i> Export
                     </button>
@@ -59,17 +202,32 @@
             <div class="account-manager-stats">
                 <span>📊 <span id="totalAccounts">0</span> Accounts</span>
                 <span>✅ <span id="validAccounts">0</span> gültig</span>
+                <span>❌ <span id="invalidAccounts">0</span> ungültig</span>
                 <span>👑 <span id="nitroAccounts">0</span> Nitro</span>
+            </div>
+
+            <div id="recheckProgress" style="display:none;margin-bottom:1rem;padding:0.5rem 1rem;background:rgba(108,122,240,0.1);border-radius:12px;border:1px solid rgba(108,122,240,0.15);color:#8b9cf7;font-size:0.85rem;text-align:center;">
+                <i class="fas fa-spinner fa-spin"></i> Prüfe Tokens neu... <span id="recheckStatus">0/0</span>
             </div>
 
             <div class="account-manager-list-full" id="accountManagerList">
                 <div class="empty-state" style="padding:2rem;">
                     <i class="fas fa-inbox"></i>
-                    <div>Keine Accounts gespeichert</div>
+                    <div>Keine Discord Accounts gespeichert</div>
                     <div class="sub-text">Prüfe Tokens auf der Hauptseite, um sie zu speichern</div>
                 </div>
             </div>
 
+        </div>
+
+        <!-- ===== PLATTFORM BUTTONS ===== -->
+        <div class="platform-buttons">
+            <a href="steam-manager.html" class="platform-btn steam">
+                <i class="fab fa-steam"></i> Steam Manager
+            </a>
+            <a href="rockstar-manager.html" class="platform-btn rockstar">
+                <i class="fas fa-rocket"></i> Rockstar Manager
+            </a>
         </div>
 
         <!-- ===== FOOTER ===== -->
