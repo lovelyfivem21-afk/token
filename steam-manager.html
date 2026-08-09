@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Steam Manager</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect x='5' y='5' width='90' height='90' rx='20' fill='%236c7af0'/><rect x='12' y='12' width='76' height='76' rx='14' fill='%230b0d1a'/><text x='50' y='68' font-family='Arial, sans-serif' font-size='40' font-weight='bold' text-anchor='middle' fill='%236c7af0' letter-spacing='2'>DX</text><text x='50' y='88' font-family='Arial, sans-serif' font-size='12' font-weight='bold' text-anchor='middle' fill='%234a507a' letter-spacing='4'>SETUP</text></svg>" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <link rel="stylesheet" href="style.css" />
+    <style>
+        .manager-input-area {
+            display: flex;
+            gap: 0.8rem;
+            flex-wrap: wrap;
+            margin-bottom: 1.2rem;
+            align-items: flex-start;
+        }
+        .manager-input-area textarea {
+            flex: 1;
+            min-width: 250px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 12px;
+            padding: 0.6rem 1rem;
+            color: #e4e9ff;
+            font-size: 0.85rem;
+            outline: none;
+            transition: 0.3s;
+            font-family: 'Menlo', monospace;
+            resize: vertical;
+            min-height: 60px;
+            max-height: 120px;
+        }
+        .manager-input-area textarea:focus {
+            border-color: rgba(108, 122, 240, 0.2);
+        }
+        .manager-input-area textarea::placeholder {
+            color: #4a507a;
+        }
+        .manager-input-area .btn {
+            padding: 0.5rem 1.2rem;
+            font-size: 0.8rem;
+            align-self: center;
+        }
+        .manager-input-area .btn i {
+            margin-right: 4px;
+        }
+        .manager-input-area .btn-manual {
+            background: rgba(108, 122, 240, 0.15);
+            border-color: rgba(108, 122, 240, 0.2);
+            color: #8b9cf7;
+        }
+        .manager-input-area .btn-manual:hover {
+            background: rgba(108, 122, 240, 0.3);
+        }
+        .steam-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        .steam-list::-webkit-scrollbar { width: 4px; }
+        .steam-list::-webkit-scrollbar-track { background: rgba(26, 27, 38, 0.2); border-radius: 10px; }
+        .steam-list::-webkit-scrollbar-thumb { background: rgba(108, 122, 240, 0.15); border-radius: 10px; }
+        .steam-item {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            padding: 0.8rem 1.2rem;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: 0.2s;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .steam-item:hover {
+            border-color: rgba(108, 122, 240, 0.08);
+        }
+        .steam-item .info {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            flex: 1;
+            min-width: 0;
+        }
+        .steam-item .info .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(45, 47, 72, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+        .steam-item .info .avatar i {
+            color: #6a7099;
+            font-size: 1rem;
+        }
+        .steam-item .info .name {
+            color: #e4e9ff;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        .steam-item .info .details {
+            color: #6a7099;
+            font-size: 0.7rem;
+            display: flex;
+            gap: 0.8rem;
+            flex-wrap: wrap;
+        }
+        .steam-item .info .details .label {
+            color: #4a507a;
+        }
+        .steam-item .badge-status {
+            padding: 0.1rem 0.6rem;
+            border-radius: 10px;
+            font-size: 0.6rem;
+            font-weight: 600;
+        }
+        .badge-status.valid { background: rgba(74, 222, 128, 0.1); color: #4ade80; border: 1px solid rgba(74, 222, 128, 0.1); }
+        .badge-status.pending { background: rgba(167, 139, 250, 0.08); color: #a78bfa; border: 1px solid rgba(167, 139, 250, 0.08); }
+        .steam-item .actions {
+            display: flex;
+            gap: 0.3rem;
+        }
+        .steam-item .actions button {
+            background: rgba(45, 47, 72, 0.2);
+            border: none;
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            color: #6a7099;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 0.7rem;
+        }
+        .steam-item .actions button:hover {
+            background: rgba(108, 122, 240, 0.15);
+            color: #d6deff;
+        }
+        .steam-item .actions button.delete:hover {
+            background: rgba(244, 114, 182, 0.15);
+            color: #f472b6;
+        }
+        .back-link {
+            display: inline-block;
+            margin-top: 1rem;
+            color: #6a7099;
+            text-decoration: none;
+            transition: 0.2s;
+        }
+        .back-link:hover {
+            color: #8b9cf7;
+        }
+        .manager-stats {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+            padding: 0.6rem 1rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            font-size: 0.8rem;
+            color: #8892b0;
+        }
+        .manager-stats span { display: flex; align-items: center; gap: 4px; }
+        .manager-stats span:first-child { color: #8b9cf7; }
+        .manager-stats span:nth-child(2) { color: #4ade80; }
+        .batch-input-hint {
+            color: #4a507a;
+            font-size: 0.75rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .batch-input-hint i {
+            color: #8b9cf7;
+        }
+        .batch-input-hint code {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 0.1rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            color: #a78bfa;
+        }
+        .manual-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            padding: 1.5rem;
+        }
+        .manual-modal.active { display: flex; }
+        .manual-modal-content {
+            background: rgba(9, 4, 22, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 24px;
+            padding: 2rem;
+            max-width: 450px;
+            width: 100%;
+            animation: modalSlideUp 0.4s ease-out;
+        }
+        @keyframes modalSlideUp {
+            from { opacity: 0; transform: translateY(30px) scale(0.97); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .manual-modal-content h2 {
+            color: #f0f3ff;
+            font-size: 1.3rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+        .manual-modal-content h2 i { color: #8b9cf7; }
+        .manual-modal-content .sub { color: #8892b0; font-size: 0.85rem; margin-bottom: 1.2rem; }
+        .manual-modal-content .input-group { margin-bottom: 0.8rem; }
+        .manual-modal-content .input-group label {
+            color: #b9c2f0;
+            font-size: 0.8rem;
+            display: block;
+            margin-bottom: 3px;
+        }
+        .manual-modal-content .input-group input {
+            width: 100%;
+            padding: 0.6rem 1rem;
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(68, 71, 102, 0.2);
+            color: #e4e9ff;
+            font-size: 0.85rem;
+            outline: none;
+            transition: 0.3s;
+            font-family: 'Menlo', monospace;
+        }
+        .manual-modal-content .input-group input:focus {
+            border-color: rgba(108, 122, 240, 0.3);
+        }
+        .manual-modal-content .modal-actions {
+            display: flex;
+            gap: 0.8rem;
+            margin-top: 1rem;
+        }
+        .manual-modal-content .modal-actions .btn { flex: 1; justify-content: center; }
+        .manual-modal-content .modal-actions .btn-secondary {
+            background: rgba(61, 63, 94, 0.3);
+            border: 1px solid rgba(88, 92, 130, 0.15);
+            color: #d6deff;
+        }
+        .manual-modal-content .modal-actions .btn-secondary:hover {
+            background: rgba(61, 63, 94, 0.5);
+        }
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: rgba(9, 4, 22, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(68, 71, 102, 0.2);
+            border-radius: 16px;
+            padding: 14px 24px;
+            color: #e4e9ff;
+            font-size: 0.9rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+            animation: toastSlide 0.4s ease-out;
+            z-index: 3000;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            max-width: 400px;
+            border-left: 4px solid #8b9cf7;
+        }
+        .toast.success { border-left-color: #4ade80; }
+        .toast.error { border-left-color: #f472b6; }
+        @keyframes toastSlide {
+            from { opacity: 0; transform: translateY(30px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== MANUAL MODAL ===== -->
+    <div class="manual-modal" id="steamManualModal">
+        <div class="manual-modal-content">
+            <h2><i class="fab fa-steam"></i> Steam Account manuell hinzufügen</h2>
+            <div class="sub">Füge einen Steam Account manuell hinzu</div>
+            
+            <div class="input-group">
+                <label>👤 Benutzername</label>
+                <input type="text" id="steamManualUser" placeholder="z.B. wznnn237784" />
+            </div>
+            <div class="input-group">
+                <label>🔑 Passwort</label>
+                <input type="text" id="steamManualPass" placeholder="z.B. TsQhI283081" />
+            </div>
+            <div class="input-group">
+                <label>📧 E-Mail</label>
+                <input type="text" id="steamManualEmail" placeholder="z.B. mwsmlm@uwvm7m.ru" />
+            </div>
+            <div class="input-group">
+                <label>📧 E-Mail Passwort</label>
+                <input type="text" id="steamManualEmailPass" placeholder="z.B. 84122441" />
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeSteamManual()"><i class="fas fa-times"></i> Abbrechen</button>
+                <button class="btn btn-primary" onclick="addSteamManual()"><i class="fas fa-plus"></i> Hinzufügen</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== MAIN CONTENT ===== -->
+    <div class="bg-container">
+        <div class="bg-orbe bg-orbe-1"></div>
+        <div class="bg-orbe bg-orbe-2"></div>
+        <div class="bg-orbe bg-orbe-3"></div>
+        <div class="bg-orbe bg-orbe-4"></div>
+        <div class="bg-orbe bg-orbe-5"></div>
+        <div class="bg-grid"></div>
+        <div class="bg-particles" id="particles"></div>
+    </div>
+
+    <div class="container">
+
+        <header class="header">
+            <h1><span class="highlight">Steam Manager</span></h1>
+            <p>Verwalte deine Steam Accounts</p>
+            <div style="margin-top:0.5rem;">
+                <a href="accounts.html" class="btn btn-secondary" style="text-decoration:none;padding:0.3rem 1.2rem;font-size:0.8rem;">
+                    <i class="fas fa-arrow-left"></i> Zurück zum Account Manager
+                </a>
+            </div>
+        </header>
+
+        <div class="card" style="padding:1.5rem;">
+
+            <div class="batch-input-hint">
+                <i class="fas fa-info-circle"></i>
+                Format: <code>benutzername:passwort / email:emailpasswort</code> oder <code>benutzername:passwort:email:emailpasswort</code>
+            </div>
+
+            <div class="manager-input-area">
+                <textarea id="steamBatchInput" placeholder="Accounts hier einfügen, einer pro Zeile&#10;z.B. wznnn237784:TsQhI283081 / mwsmlm@uwvm7m.ru:84122441"></textarea>
+                <button class="btn btn-primary" id="addSteamBatchBtn">
+                    <i class="fas fa-plus"></i> Batch
+                </button>
+                <button class="btn btn-manual" id="openSteamManualBtn">
+                    <i class="fas fa-pen"></i> Manuell
+                </button>
+            </div>
+
+            <div class="manager-stats">
+                <span>📊 <span id="steamTotal">0</span> Accounts</span>
+                <span>✅ <span id="steamValid">0</span> geprüft</span>
+            </div>
+
+            <div class="steam-list" id="steamList">
+                <div class="empty-state" style="padding:2rem;">
+                    <i class="fas fa-steam"></i>
+                    <div>Keine Steam Accounts gespeichert</div>
+                    <div class="sub-text">Füge deine Steam Accounts im Format oben ein</div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="footer">
+            <span><i class="fas fa-code"></i> by Dxsetup</span>
+        </div>
+
+    </div>
+
+    <script>
+        // ============================================================
+        // STEAM MANAGER
+        // ============================================================
+        const steamBatchInput = document.getElementById('steamBatchInput');
+        const addSteamBatchBtn = document.getElementById('addSteamBatchBtn');
+        const openSteamManualBtn = document.getElementById('openSteamManualBtn');
+        const steamList = document.getElementById('steamList');
+        const steamTotal = document.getElementById('steamTotal');
+        const steamValid = document.getElementById('steamValid');
+
+        // Manual Modal Elements
+        const steamManualModal = document.getElementById('steamManualModal');
+        const steamManualUser = document.getElementById('steamManualUser');
+        const steamManualPass = document.getElementById('steamManualPass');
+        const steamManualEmail = document.getElementById('steamManualEmail');
+        const steamManualEmailPass = document.getElementById('steamManualEmailPass');
+
+        // ============================================================
+        // LOCAL STORAGE FUNKTIONEN
+        // ============================================================
+        function loadSteamAccounts() {
+            try {
+                return JSON.parse(localStorage.getItem('steamAccounts')) || [];
+            } catch {
+                return [];
+            }
+        }
+
+        function saveSteamAccounts(accounts) {
+            localStorage.setItem('steamAccounts', JSON.stringify(accounts));
+        }
+
+        // ============================================================
+        // STEAM ACCOUNT PARSEN
+        // ============================================================
+        function parseSteamAccount(line) {
+            line = line.trim();
+            if (!line) return null;
+
+            if (line.includes(' / ')) {
+                const [loginPart, emailPart] = line.split(' / ');
+                const loginParts = loginPart.split(':');
+                const emailParts = emailPart.split(':');
+                if (loginParts.length >= 2 && emailParts.length >= 2) {
+                    return {
+                        username: loginParts[0].trim(),
+                        password: loginParts.slice(1).join(':').trim(),
+                        email: emailParts[0].trim(),
+                        emailPassword: emailParts.slice(1).join(':').trim(),
+                        note: ''
+                    };
+                }
+                if (loginParts.length >= 2) {
+                    return {
+                        username: loginParts[0].trim(),
+                        password: loginParts.slice(1).join(':').trim(),
+                        email: emailParts[0] || '',
+                        emailPassword: emailParts.slice(1).join(':') || '',
+                        note: ''
+                    };
+                }
+            }
+
+            const parts = line.split(':');
+            if (parts.length >= 4) {
+                return {
+                    username: parts[0].trim(),
+                    password: parts.slice(1, parts.length - 2).join(':').trim(),
+                    email: parts[parts.length - 2].trim(),
+                    emailPassword: parts[parts.length - 1].trim(),
+                    note: ''
+                };
+            }
+
+            if (parts.length >= 3) {
+                return {
+                    username: parts[0].trim(),
+                    password: parts[1].trim(),
+                    email: parts[2].trim(),
+                    emailPassword: '',
+                    note: ''
+                };
+            }
+
+            if (parts.length >= 2) {
+                return {
+                    username: parts[0].trim(),
+                    password: parts[1].trim(),
+                    email: '',
+                    emailPassword: '',
+                    note: ''
+                };
+            }
+
+            return null;
+        }
+
+        // ============================================================
+        // ACCOUNTS HINZUFÜGEN (Batch)
+        // ============================================================
+        function addSteamAccounts() {
+            const raw = steamBatchInput.value;
+            const lines = raw.split('\n').filter(l => l.trim());
+            
+            if (lines.length === 0) {
+                showToast('❌ Bitte Accounts eingeben!', 'error');
+                return;
+            }
+
+            const accounts = loadSteamAccounts();
+            let added = 0;
+            let errors = 0;
+
+            lines.forEach(line => {
+                const parsed = parseSteamAccount(line);
+                if (parsed) {
+                    const exists = accounts.some(a => a.username === parsed.username && a.email === parsed.email);
+                    if (!exists) {
+                        accounts.push({
+                            ...parsed,
+                            date: new Date().toISOString(),
+                            checked: false
+                        });
+                        added++;
+                    }
+                } else {
+                    errors++;
+                }
+            });
+
+            if (added > 0) {
+                saveSteamAccounts(accounts);
+                renderSteamAccounts();
+                steamBatchInput.value = '';
+                showToast(`✅ ${added} Steam Accounts hinzugefügt!${errors > 0 ? ` (${errors} Fehler)` : ''}`, 'success');
+            } else {
+                showToast(`❌ Keine gültigen Accounts gefunden!${errors > 0 ? ` (${errors} Fehler)` : ''}`, 'error');
+            }
+        }
+
+        // ============================================================
+        // MANUELL HINZUFÜGEN (Steam)
+        // ============================================================
+        function openSteamManual() {
+            steamManualModal.classList.add('active');
+            steamManualUser.value = '';
+            steamManualPass.value = '';
+            steamManualEmail.value = '';
+            steamManualEmailPass.value = '';
+            steamManualUser.focus();
+        }
+
+        function closeSteamManual() {
+            steamManualModal.classList.remove('active');
+        }
+
+        function addSteamManual() {
+            const username = steamManualUser.value.trim();
+            const password = steamManualPass.value.trim();
+            const email = steamManualEmail.value.trim();
+            const emailPassword = steamManualEmailPass.value.trim();
+
+            if (!username || !password) {
+                showToast('❌ Bitte Benutzername und Passwort eingeben!', 'error');
+                return;
+            }
+
+            const accounts = loadSteamAccounts();
+            const exists = accounts.some(a => a.username === username && a.email === email);
+            if (exists) {
+                showToast('⚠️ Account existiert bereits!', 'error');
+                return;
+            }
+
+            accounts.push({
+                username: username,
+                password: password,
+                email: email,
+                emailPassword: emailPassword,
+                note: '',
+                date: new Date().toISOString(),
+                checked: false
+            });
+
+            saveSteamAccounts(accounts);
+            renderSteamAccounts();
+            closeSteamManual();
+            showToast('✅ Steam Account manuell hinzugefügt!', 'success');
+        }
+
+        // ============================================================
+        // ACCOUNT LÖSCHEN / TOGGLE
+        // ============================================================
+        function deleteSteamAccount(index) {
+            let accounts = loadSteamAccounts();
+            accounts = accounts.filter((_, i) => i !== index);
+            saveSteamAccounts(accounts);
+            renderSteamAccounts();
+            showToast('🗑️ Steam Account gelöscht!', 'info');
+        }
+
+        function toggleSteamChecked(index) {
+            const accounts = loadSteamAccounts();
+            if (accounts[index]) {
+                accounts[index].checked = !accounts[index].checked;
+                saveSteamAccounts(accounts);
+                renderSteamAccounts();
+            }
+        }
+
+        // ============================================================
+        // RENDER
+        // ============================================================
+        function renderSteamAccounts() {
+            const accounts = loadSteamAccounts();
+
+            if (accounts.length === 0) {
+                steamList.innerHTML = `
+                    <div class="empty-state" style="padding:2rem;">
+                        <i class="fas fa-steam"></i>
+                        <div>Keine Steam Accounts gespeichert</div>
+                        <div class="sub-text">Füge deine Steam Accounts im Format oben ein</div>
+                    </div>
+                `;
+                steamTotal.textContent = '0';
+                steamValid.textContent = '0';
+                return;
+            }
+
+            let html = '';
+            let validCount = 0;
+
+            accounts.forEach((acc, index) => {
+                if (acc.checked) validCount++;
+                
+                html += `
+                    <div class="steam-item">
+                        <div class="info">
+                            <div class="avatar">
+                                <i class="fab fa-steam"></i>
+                            </div>
+                            <div>
+                                <div class="name">${acc.username || 'Unbekannt'}</div>
+                                <div class="details">
+                                    ${acc.password ? `<span><span class="label">Passwort:</span> ${acc.password}</span>` : ''}
+                                    ${acc.email ? `<span><span class="label">E-Mail:</span> ${acc.email}</span>` : ''}
+                                    ${acc.emailPassword ? `<span><span class="label">E-Mail Passwort:</span> ${acc.emailPassword}</span>` : ''}
+                                    ${acc.note ? `<span>📝 ${acc.note}</span>` : ''}
+                                    <span>📅 ${new Date(acc.date).toLocaleDateString()}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="badge-status ${acc.checked ? 'valid' : 'pending'}">
+                            ${acc.checked ? '✅ Geprüft' : '⏳ Offen'}
+                        </div>
+                        <div class="actions">
+                            <button onclick="toggleSteamChecked(${index})" title="Als geprüft markieren">
+                                <i class="fas fa-check"></i>
+                            </button>
+                            <button class="delete" onclick="deleteSteamAccount(${index})" title="Löschen">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            steamList.innerHTML = html;
+            steamTotal.textContent = accounts.length;
+            steamValid.textContent = validCount;
+        }
+
+        // ============================================================
+        // EVENTS
+        // ============================================================
+        addSteamBatchBtn.addEventListener('click', addSteamAccounts);
+        openSteamManualBtn.addEventListener('click', openSteamManual);
+
+        steamBatchInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && e.ctrlKey) {
+                e.preventDefault();
+                addSteamAccounts();
+            }
+        });
+
+        // Modal Enter/ESC
+        steamManualModal.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeSteamManual();
+            if (e.key === 'Enter') addSteamManual();
+        });
+
+        // Klick außerhalb schließt Modal
+        steamManualModal.addEventListener('click', function(e) {
+            if (e.target === this) closeSteamManual();
+        });
+
+        window.deleteSteamAccount = deleteSteamAccount;
+        window.toggleSteamChecked = toggleSteamChecked;
+        window.openSteamManual = openSteamManual;
+        window.closeSteamManual = closeSteamManual;
+        window.addSteamManual = addSteamManual;
+
+        // ============================================================
+        // TOAST
+        // ============================================================
+        function showToast(message, type = 'info') {
+            const existing = document.querySelector('.toast');
+            if (existing) existing.remove();
+
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            const icons = {
+                success: 'fa-check-circle',
+                error: 'fa-exclamation-circle',
+                info: 'fa-info-circle'
+            };
+            toast.innerHTML = `<i class="fas ${icons[type] || icons.info}"></i> ${message}`;
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(20px)';
+                setTimeout(() => toast.remove(), 400);
+            }, 4000);
+        }
+
+        // ============================================================
+        // INIT
+        // ============================================================
+        renderSteamAccounts();
+        console.log('✅ Steam Manager mit manueller Eingabe geladen!');
+    </script>
+
+</body>
+</html>
