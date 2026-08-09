@@ -81,14 +81,84 @@
     };
 
     // ============================================================
+    // TOKEN NEU PRÜFEN
+    // ============================================================
+    async function recheckToken(token) {
+        const clean = token.trim();
+        if (!clean) return { status: 'invalid', error: 'Leeres Token', token: clean };
+
+        try {
+            const response = await fetch('https://discord.com/api/v10/users/@me', {
+                headers: {
+                    'Authorization': clean,
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+                }
+            });
+
+            if (response.status === 200) {
+                const data = await response.json();
+                const avatarUrl = data.avatar ? `https://cdn.discordapp.com/avatars/${data.id}/${data.avatar}.png?size=64` : null;
+                
+                let age = 'Unbekannt';
+                try {
+                    const snowflake = BigInt(data.id);
+                    const timestamp = Number((snowflake >> 22n) + 1420070400000n);
+                    const created = new Date(timestamp);
+                    const now = new Date();
+                    const diffDays = Math.floor((now - created) / (1000 * 60 * 60 * 24));
+                    if (diffDays < 30) age = `${diffDays} Tage`;
+                    else if (diffDays < 365) {
+                        const months = Math.floor(diffDays / 30);
+                        const days = diffDays % 30;
+                        age = `${months} Monate${days > 0 ? `, ${days} Tage` : ''}`;
+                    } else {
+                        const years = Math.floor(diffDays / 365);
+                        const months = Math.floor((diffDays % 365) / 30);
+                        age = `${years} Jahr${years > 1 ? 'e' : ''}${months > 0 ? `, ${months} Monate` : ''}`;
+                    }
+                } catch (e) {}
+
+                let nitro = 'none';
+                if (data.premium_type === 2) nitro = 'boost';
+                else if (data.premium_type === 1) nitro = 'classic';
+
+                return {
+                    status: 'valid',
+                    username: data.username,
+                    discriminator: data.discriminator || '0',
+                    id: data.id,
+                    avatar: avatarUrl,
+                    age: age,
+                    verified: data.verified || false,
+                    email: data.email || null,
+                    nitro: nitro,
+                    token: clean
+                };
+            } else if (response.status === 401) {
+                return { status: 'invalid', error: 'Ungültiger Token', token: clean };
+            } else if (response.status === 429) {
+                return { status: 'invalid', error: 'Rate Limit', token: clean };
+            } else {
+                return { status: 'invalid', error: `HTTP ${response.status}`, token: clean };
+            }
+        } catch (error) {
+            return { status: 'invalid', error: 'Netzwerkfehler', token: clean };
+        }
+    }
+
+    // ============================================================
     // ACCOUNT MANAGER
     // ============================================================
     const accountManagerList = document.getElementById('accountManagerList');
     const totalAccounts = document.getElementById('totalAccounts');
     const validAccounts = document.getElementById('validAccounts');
+    const invalidAccounts = document.getElementById('invalidAccounts');
     const nitroAccounts = document.getElementById('nitroAccounts');
     const exportAccountsBtn = document.getElementById('exportAccountsBtn');
     const clearAccountsBtn = document.getElementById('clearAccountsBtn');
+    const recheckAllBtn = document.getElementById('recheckAllBtn');
+    const recheckProgress = document.getElementById('recheckProgress');
+    const recheckStatus = document.getElementById('recheckStatus');
 
     function loadAccounts() {
         try {
@@ -118,10 +188,37 @@
         }
     }
 
+    // ============================================================
+    // NOTIZEN FUNKTIONEN
+    // ============================================================
+    function saveNote(accountId, note) {
+        const accounts = loadAccounts();
+        const account = accounts.find(a => a.id === accountId);
+        if (account) {
+            account.note = note.trim();
+            saveAccounts(accounts);
+            renderAccountManager();
+            showToast('✅ Notiz gespeichert!', 'success');
+        }
+    }
+
+    function deleteNote(accountId) {
+        const accounts = loadAccounts();
+        const account = accounts.find(a => a.id === accountId);
+        if (account) {
+            account.note = '';
+            saveAccounts(accounts);
+            renderAccountManager();
+            showToast('🗑️ Notiz gelöscht!', 'info');
+        }
+    }
+
+    // ============================================================
+    // RENDER ACCOUNT MANAGER
+    // ============================================================
     function renderAccountManager() {
         const accounts = loadAccounts();
         
-        // Nach Alter sortieren (älteste zuerst)
         accounts.sort((a, b) => {
             const ageA = parseInt(a.age) || 0;
             const ageB = parseInt(b.age) || 0;
@@ -138,42 +235,61 @@
             `;
             totalAccounts.textContent = '0';
             validAccounts.textContent = '0';
+            invalidAccounts.textContent = '0';
             nitroAccounts.textContent = '0';
             return;
         }
 
-        let valid = 0, nitro = 0;
+        let valid = 0, invalid = 0, nitro = 0;
         let html = '';
         
         accounts.forEach(acc => {
             if (acc.status === 'valid') valid++;
+            else invalid++;
             if (acc.nitro && acc.nitro !== 'none') nitro++;
             
             const displayName = acc.discriminator && acc.discriminator !== '0' ?
                 `${acc.username}#${acc.discriminator}` :
                 acc.username;
             
+            const hasNote = acc.note && acc.note.trim().length > 0;
+            
             html += `
                 <div class="account-item">
                     <div class="info">
-                        <div class="avatar">
-                            ${acc.avatar ? `<img src="${acc.avatar}" alt="Avatar" />` : `<i class="fas fa-user" style="color:#4a507a;"></i>`}
-                        </div>
-                        <div>
-                            <div class="name">${displayName}</div>
-                            <div class="details">
-                                <span><i class="fas fa-clock"></i> ${acc.age || 'Unbekannt'}</span>
-                                ${acc.email ? `<span><i class="fas fa-envelope"></i> ${acc.email}</span>` : ''}
+                        <div class="main-info">
+                            <div class="avatar">
+                                ${acc.avatar ? `<img src="${acc.avatar}" alt="Avatar" />` : `<i class="fas fa-user" style="color:#4a507a;"></i>`}
                             </div>
+                            <div>
+                                <div class="name">${displayName}</div>
+                                <div class="details">
+                                    <span><i class="fas fa-clock"></i> ${acc.age || 'Unbekannt'}</span>
+                                    ${acc.email ? `<span><i class="fas fa-envelope"></i> ${acc.email}</span>` : ''}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="note-container">
+                            ${hasNote ? `
+                                <div class="note-display" onclick="window.openNoteEditor('${acc.id}')" title="Klick zum Bearbeiten">
+                                    📝 ${acc.note}
+                                </div>
+                            ` : `
+                                <input type="text" id="noteInput_${acc.id}" placeholder="Notiz hinzufügen..." maxlength="100" />
+                                <button class="note-save" onclick="window.saveNoteFromInput('${acc.id}')" title="Notiz speichern">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                            `}
                         </div>
                     </div>
                     <div class="badges">
-                        <span class="tag valid">✅ VALID</span>
+                        ${acc.status === 'valid' ? '<span class="tag valid">✅ VALID</span>' : '<span class="tag invalid">❌ INVALID</span>'}
                         ${acc.nitro && acc.nitro !== 'none' ? `<span class="tag nitro">${acc.nitro === 'boost' ? '⚡ Boost' : '👑 Classic'}</span>` : ''}
                     </div>
                     <div class="actions">
-                        <button onclick="window.login('${acc.token}')" class="login-acc" title="Login"><i class="fas fa-sign-in-alt"></i> Login</button>
+                        ${acc.status === 'valid' ? `<button onclick="window.login('${acc.token}')" class="login-acc" title="Login"><i class="fas fa-sign-in-alt"></i> Login</button>` : ''}
                         <button onclick="window.copyToken('${acc.token}')" title="Token kopieren"><i class="fas fa-copy"></i></button>
+                        ${hasNote ? `<button onclick="window.deleteNote('${acc.id}')" title="Notiz löschen" style="color:#f7d44a;"><i class="fas fa-eraser"></i></button>` : ''}
                         <button class="delete" onclick="window.deleteAccount('${acc.id}')" title="Löschen"><i class="fas fa-trash"></i></button>
                     </div>
                 </div>
@@ -183,9 +299,13 @@
         accountManagerList.innerHTML = html;
         totalAccounts.textContent = accounts.length;
         validAccounts.textContent = valid;
+        invalidAccounts.textContent = invalid;
         nitroAccounts.textContent = nitro;
     }
 
+    // ============================================================
+    // WINDOW FUNKTIONEN (für onclick)
+    // ============================================================
     window.copyToken = function(token) {
         navigator.clipboard.writeText(token).then(() => {
             showToast('✅ Token kopiert!', 'success');
@@ -196,6 +316,104 @@
         deleteAccount(id);
     };
 
+    window.deleteNote = function(id) {
+        deleteNote(id);
+    };
+
+    window.saveNoteFromInput = function(id) {
+        const input = document.getElementById(`noteInput_${id}`);
+        if (input) {
+            const note = input.value.trim();
+            if (note) {
+                saveNote(id, note);
+            } else {
+                showToast('⚠️ Bitte gib eine Notiz ein!', 'error');
+            }
+        }
+    };
+
+    window.openNoteEditor = function(id) {
+        const accounts = loadAccounts();
+        const account = accounts.find(a => a.id === id);
+        if (!account) return;
+        
+        const currentNote = account.note || '';
+        const newNote = prompt('Notiz bearbeiten:', currentNote);
+        
+        if (newNote !== null) {
+            if (newNote.trim()) {
+                saveNote(id, newNote);
+            } else {
+                deleteNote(id);
+            }
+        }
+    };
+
+    // Enter-Taste für Notiz-Input
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            const target = e.target;
+            if (target && target.id && target.id.startsWith('noteInput_')) {
+                const id = target.id.replace('noteInput_', '');
+                window.saveNoteFromInput(id);
+            }
+        }
+    });
+
+    // ============================================================
+    // ALLE NEU PRÜFEN
+    // ============================================================
+    async function recheckAllAccounts() {
+        const accounts = loadAccounts();
+        if (accounts.length === 0) {
+            showToast('❌ Keine Accounts zum Prüfen', 'error');
+            return;
+        }
+
+        recheckProgress.style.display = 'block';
+        recheckStatus.textContent = `0/${accounts.length}`;
+
+        const updatedAccounts = [];
+        for (let i = 0; i < accounts.length; i++) {
+            const acc = accounts[i];
+            recheckStatus.textContent = `${i + 1}/${accounts.length}`;
+            
+            const result = await recheckToken(acc.token);
+            
+            if (result.status === 'valid') {
+                updatedAccounts.push({
+                    id: result.id,
+                    username: result.username,
+                    discriminator: result.discriminator,
+                    avatar: result.avatar,
+                    age: result.age,
+                    nitro: result.nitro,
+                    verified: result.verified,
+                    email: result.email,
+                    token: result.token,
+                    status: 'valid',
+                    note: acc.note || '',
+                    date: acc.date || new Date().toISOString()
+                });
+            } else {
+                updatedAccounts.push({
+                    ...acc,
+                    status: 'invalid'
+                });
+            }
+            
+            await new Promise(r => setTimeout(r, 200));
+        }
+
+        saveAccounts(updatedAccounts);
+        renderAccountManager();
+        recheckProgress.style.display = 'none';
+        showToast(`✅ ${updatedAccounts.filter(a => a.status === 'valid').length} von ${updatedAccounts.length} Accounts sind gültig!`, 'success');
+    }
+
+    // ============================================================
+    // EXPORT
+    // ============================================================
     function exportAccounts() {
         const accounts = loadAccounts();
         if (accounts.length === 0) {
@@ -203,12 +421,12 @@
             return;
         }
 
-        let csv = 'Benutzername,ID,Status,Nitro,Alter,E-Mail,Token,Datum\n';
+        let csv = 'Benutzername,ID,Status,Nitro,Alter,E-Mail,Notiz,Token,Datum\n';
         accounts.forEach(acc => {
             const name = acc.discriminator && acc.discriminator !== '0' ?
                 `${acc.username}#${acc.discriminator}` :
                 acc.username;
-            csv += `"${name}",${acc.id},${acc.status},"${acc.nitro || 'Kein Nitro'}",${acc.age || 'Unbekannt'},"${acc.email || ''}",${acc.token},${acc.date || ''}\n`;
+            csv += `"${name}",${acc.id},${acc.status},"${acc.nitro || 'Kein Nitro'}",${acc.age || 'Unbekannt'},"${acc.email || ''}","${acc.note || ''}",${acc.token},${acc.date || ''}\n`;
         });
 
         const blob = new Blob([csv], { type: 'text/csv' });
@@ -221,9 +439,13 @@
         showToast(`✅ ${accounts.length} Accounts exportiert!`, 'success');
     }
 
+    // ============================================================
+    // EVENTS
+    // ============================================================
     exportAccountsBtn.addEventListener('click', exportAccounts);
     clearAccountsBtn.addEventListener('click', clearAllAccounts);
+    recheckAllBtn.addEventListener('click', recheckAllAccounts);
 
     renderAccountManager();
-    console.log('✅ Account Manager geladen!');
+    console.log('✅ Account Manager mit Notizen geladen!');
 })();
