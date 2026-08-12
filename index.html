@@ -345,11 +345,48 @@
             gap: 1rem;
             margin-bottom: 1rem;
         }
+        .cfx-server-header .left {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            flex: 1;
+            min-width: 0;
+        }
+        .cfx-server-header .server-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: rgba(139, 124, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+        .cfx-server-header .server-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .cfx-server-header .server-icon i {
+            font-size: 1.5rem;
+            color: var(--text-2);
+            opacity: 0.5;
+        }
+        .cfx-server-header .name-wrap {
+            flex: 1;
+            min-width: 0;
+        }
         .cfx-server-header .name {
             font-family: 'Space Grotesk', sans-serif;
             font-size: 1.4rem;
             font-weight: 700;
             color: var(--text-0);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
         }
         .cfx-server-header .name .badge {
             font-size: 0.6rem;
@@ -358,7 +395,6 @@
             color: var(--mint);
             padding: 0.1rem 0.6rem;
             border-radius: 999px;
-            margin-left: 0.5rem;
             font-weight: 600;
         }
         .cfx-server-header .ip {
@@ -369,6 +405,40 @@
             padding: 0.3rem 0.8rem;
             border-radius: 8px;
             border: 1px solid rgba(255,255,255,0.04);
+            flex-shrink: 0;
+        }
+        .cfx-server-header .actions {
+            display: flex;
+            gap: 0.4rem;
+            flex-shrink: 0;
+        }
+        .cfx-server-header .actions button {
+            background: rgba(45, 47, 72, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            padding: 0.4rem 0.7rem;
+            border-radius: 8px;
+            color: var(--text-1);
+            cursor: pointer;
+            font-size: 0.7rem;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .cfx-server-header .actions button:hover {
+            background: rgba(139, 124, 255, 0.15);
+            border-color: rgba(139, 124, 255, 0.2);
+            color: #fff;
+        }
+        .cfx-server-header .actions button.saved {
+            background: rgba(74, 222, 128, 0.15);
+            border-color: rgba(74, 222, 128, 0.2);
+            color: var(--mint);
+        }
+        .cfx-server-header .actions button.saved:hover {
+            background: rgba(251, 69, 112, 0.15);
+            border-color: rgba(251, 69, 112, 0.2);
+            color: var(--rose);
         }
 
         .cfx-stats-grid {
@@ -451,7 +521,6 @@
             font-family: 'Inter', sans-serif;
         }
 
-        /* NEU: Suchleisten für CFX Listen */
         .cfx-search-area {
             display: flex;
             gap: 0.5rem;
@@ -537,6 +606,95 @@
             color: var(--text-2);
         }
         .cfx-empty i { font-size: 3rem; display: block; margin-bottom: 0.8rem; opacity: 0.2; }
+
+        /* Saved Servers */
+        .cfx-saved-section {
+            margin-top: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            padding-top: 1rem;
+        }
+        .cfx-saved-section .saved-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-1);
+            margin-bottom: 0.6rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .cfx-saved-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 0.6rem;
+        }
+        .cfx-saved-item {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            padding: 0.6rem 0.8rem;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+        .cfx-saved-item:hover {
+            border-color: rgba(139, 124, 255, 0.2);
+            background: rgba(139, 124, 255, 0.05);
+        }
+        .cfx-saved-item .saved-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: rgba(139, 124, 255, 0.08);
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .cfx-saved-item .saved-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .cfx-saved-item .saved-icon i {
+            font-size: 0.9rem;
+            color: var(--text-2);
+            opacity: 0.5;
+        }
+        .cfx-saved-item .saved-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .cfx-saved-item .saved-info .saved-name {
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--text-0);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .cfx-saved-item .saved-info .saved-code {
+            font-size: 0.55rem;
+            color: var(--text-2);
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .cfx-saved-item .saved-delete {
+            background: none;
+            border: none;
+            color: var(--text-2);
+            cursor: pointer;
+            font-size: 0.6rem;
+            padding: 2px 4px;
+            border-radius: 4px;
+            transition: 0.2s;
+        }
+        .cfx-saved-item .saved-delete:hover {
+            color: var(--rose);
+            background: rgba(251, 69, 112, 0.1);
+        }
 
         .field-shell {
             position: relative;
@@ -1241,6 +1399,8 @@
             .page-title { font-size: clamp(1.8rem, 6vw, 2.8rem); }
             .cfx-search-area { flex-wrap: wrap; }
             .cfx-search-area input { min-width: 80px; }
+            .cfx-server-header .left { flex-wrap: wrap; }
+            .cfx-saved-grid { grid-template-columns: 1fr; }
         }
         @media (max-width: 480px) {
             .wrap { --zoom: 0.78; }
@@ -1263,6 +1423,8 @@
             .cfx-input-area input { width: 100%; }
             .cfx-stats-grid { grid-template-columns: 1fr 1fr; gap: 0.5rem; }
             .cfx-details-grid { grid-template-columns: 1fr; }
+            .cfx-server-header .server-icon { width: 36px; height: 36px; }
+            .cfx-server-header .name { font-size: 1rem; }
         }
     </style>
 </head>
@@ -1454,11 +1616,23 @@
 
                     <div class="cfx-server-card" id="cfxServerCard">
                         <div class="cfx-server-header">
-                            <div>
-                                <span class="name" id="cfxServerName">—</span>
-                                <span class="badge" id="cfxServerStatus" style="background:rgba(74,222,128,0.15);color:#4ade80;">● Online</span>
+                            <div class="left">
+                                <div class="server-icon" id="serverIcon">
+                                    <i class="fas fa-server"></i>
+                                </div>
+                                <div class="name-wrap">
+                                    <div class="name" id="cfxServerName">
+                                        <span>—</span>
+                                        <span class="badge" id="cfxServerStatus" style="background:rgba(74,222,128,0.15);color:#4ade80;">● Online</span>
+                                    </div>
+                                </div>
                             </div>
-                            <span class="ip" id="cfxServerIp">—</span>
+                            <div class="actions">
+                                <button id="saveServerBtn" title="Server speichern">
+                                    <i class="fas fa-bookmark"></i> Speichern
+                                </button>
+                                <span class="ip" id="cfxServerIp">—</span>
+                            </div>
                         </div>
 
                         <div class="cfx-stats-grid">
@@ -1513,6 +1687,17 @@
                         </div>
                         <div class="cfx-resource-list" id="cfxResourceList">
                             <div class="cfx-resource-item" style="color:var(--text-2);">Keine Resources</div>
+                        </div>
+
+                        <!-- Gespeicherte Server -->
+                        <div class="cfx-saved-section" id="savedServersSection">
+                            <div class="saved-title">
+                                <i class="fas fa-bookmark" style="color:var(--gold);"></i> Gespeicherte Server
+                                <span style="font-size:0.6rem;color:var(--text-2);font-weight:400;" id="savedCount"></span>
+                            </div>
+                            <div class="cfx-saved-grid" id="savedServerList">
+                                <div style="color:var(--text-2);font-size:0.75rem;padding:0.5rem 0;">Keine gespeicherten Server</div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1754,7 +1939,6 @@
                 btn.classList.toggle('active', btn.dataset.page === page);
             });
 
-            // Titel aktualisieren
             const info = pageTitles[page] || pageTitles.discord;
             pageTitleEl.innerHTML = `<span class="highlight">${info.title}</span>`;
             pageSubEl.textContent = info.sub;
@@ -1770,7 +1954,6 @@
             });
         });
 
-        // Discord ist standardmäßig aktiv
         switchPage('discord');
 
         // ============================================================
@@ -2804,7 +2987,7 @@
         window.addRockstarManual = addRockstarManual;
 
         // ============================================================
-        // CFX CHECKER - ECHTE API mit Suchfunktion
+        // CFX CHECKER - mit Server-Logo und Speicherfunktion
         // ============================================================
         const cfxInput = document.getElementById('cfxInput');
         const cfxLookupBtn = document.getElementById('cfxLookupBtn');
@@ -2830,6 +3013,8 @@
         const cfxResourceList = document.getElementById('cfxResourceList');
         const cfxPlayerCount = document.getElementById('cfxPlayerCount');
         const cfxResourceCount = document.getElementById('cfxResourceCount');
+        const serverIcon = document.getElementById('serverIcon');
+        const saveServerBtn = document.getElementById('saveServerBtn');
 
         // Suchfeld-Elemente
         const playerSearchInput = document.getElementById('playerSearchInput');
@@ -2839,6 +3024,8 @@
 
         let currentPlayerData = [];
         let currentResourceData = [];
+        let currentServerData = null;
+        let currentServerCode = '';
 
         function stripColor(str) {
             if (!str) return '';
@@ -2855,6 +3042,123 @@
             return code || null;
         }
 
+        // ============================================================
+        // CFX SAVE / LOAD
+        // ============================================================
+        function loadSavedServers() {
+            try { return JSON.parse(localStorage.getItem('cfxSavedServers')) || []; } catch { return []; }
+        }
+
+        function saveSavedServers(servers) {
+            localStorage.setItem('cfxSavedServers', JSON.stringify(servers));
+        }
+
+        function renderSavedServers() {
+            const servers = loadSavedServers();
+            const container = document.getElementById('savedServerList');
+            const countEl = document.getElementById('savedCount');
+
+            if (servers.length === 0) {
+                container.innerHTML = `<div style="color:var(--text-2);font-size:0.75rem;padding:0.5rem 0;">Keine gespeicherten Server</div>`;
+                countEl.textContent = '';
+                return;
+            }
+
+            countEl.textContent = `(${servers.length})`;
+            let html = '';
+            servers.forEach((s, index) => {
+                const iconHtml = s.iconUrl ?
+                    `<img src="${s.iconUrl}" alt="Icon" />` :
+                    `<i class="fas fa-server"></i>`;
+                html += `
+                    <div class="cfx-saved-item" onclick="loadSavedServer(${index})">
+                        <div class="saved-icon">${iconHtml}</div>
+                        <div class="saved-info">
+                            <div class="saved-name">${s.name || 'Unbekannter Server'}</div>
+                            <div class="saved-code">${s.code}</div>
+                        </div>
+                        <button class="saved-delete" onclick="event.stopPropagation();deleteSavedServer(${index})" title="Löschen">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        function saveCurrentServer() {
+            if (!currentServerData) {
+                showToast('❌ Kein Server geladen!', 'error');
+                return;
+            }
+
+            const servers = loadSavedServers();
+            const exists = servers.some(s => s.code === currentServerCode);
+            if (exists) {
+                showToast('⚠️ Server bereits gespeichert!', 'error');
+                return;
+            }
+
+            const info = currentServerData.Data || {};
+            servers.push({
+                code: currentServerCode,
+                name: stripColor(info.hostname || 'Unbekannter Server'),
+                iconUrl: info.icon || null,
+                endpoint: (info.connectEndPoints && info.connectEndPoints[0]) || '',
+                date: new Date().toISOString()
+            });
+
+            saveSavedServers(servers);
+            renderSavedServers();
+            updateSaveButton(true);
+            showToast('✅ Server gespeichert!', 'success');
+        }
+
+        function loadSavedServer(index) {
+            const servers = loadSavedServers();
+            const s = servers[index];
+            if (!s) return;
+
+            cfxInput.value = s.code;
+            currentServerCode = s.code;
+            performLookup();
+            showToast(`🔍 Lade "${s.name}"...`, 'info');
+        }
+
+        function deleteSavedServer(index) {
+            const servers = loadSavedServers();
+            const name = servers[index]?.name || 'Server';
+            servers.splice(index, 1);
+            saveSavedServers(servers);
+            renderSavedServers();
+            showToast(`🗑️ "${name}" gelöscht!`, 'info');
+        }
+
+        function updateSaveButton(isSaved) {
+            if (isSaved) {
+                saveServerBtn.innerHTML = '<i class="fas fa-check"></i> Gespeichert';
+                saveServerBtn.classList.add('saved');
+                saveServerBtn.title = 'Server ist gespeichert';
+            } else {
+                saveServerBtn.innerHTML = '<i class="fas fa-bookmark"></i> Speichern';
+                saveServerBtn.classList.remove('saved');
+                saveServerBtn.title = 'Server speichern';
+            }
+        }
+
+        function checkIfSaved(code) {
+            const servers = loadSavedServers();
+            return servers.some(s => s.code === code);
+        }
+
+        window.loadSavedServer = loadSavedServer;
+        window.deleteSavedServer = deleteSavedServer;
+
+        saveServerBtn.addEventListener('click', saveCurrentServer);
+
+        // ============================================================
+        // CFX RENDER
+        // ============================================================
         function renderPlayers(players, searchTerm = '') {
             currentPlayerData = players || [];
             const term = searchTerm.toLowerCase().trim();
@@ -2870,7 +3174,8 @@
             playerSearchCount.textContent = filtered.length > 0 ? `${filtered.length} / ${currentPlayerData.length}` : '';
 
             if (filtered.length === 0) {
-                cfxPlayerList.innerHTML = `<div class="cfx-player-item" style="color:var(--text-2);">${term ? 'Keine Spieler gefunden' : 'Keine Spieler'}</div>`;
+                cfxPlayerList.innerHTML =
+                    `<div class="cfx-player-item" style="color:var(--text-2);">${term ? 'Keine Spieler gefunden' : 'Keine Spieler'}</div>`;
                 return;
             }
 
@@ -2897,7 +3202,8 @@
             resourceSearchCount.textContent = filtered.length > 0 ? `${filtered.length} / ${currentResourceData.length}` : '';
 
             if (filtered.length === 0) {
-                cfxResourceList.innerHTML = `<div class="cfx-resource-item" style="color:var(--text-2);">${term ? 'Keine Resources gefunden' : 'Keine Resources'}</div>`;
+                cfxResourceList.innerHTML =
+                    `<div class="cfx-resource-item" style="color:var(--text-2);">${term ? 'Keine Resources gefunden' : 'Keine Resources'}</div>`;
                 return;
             }
 
@@ -2927,13 +3233,24 @@
             const resources = info.resources || [];
             const gameBuild = (info.vars && info.vars.sv_enforceGameBuild) || '';
             const txAdmin = (info.vars && info.vars['txAdmin-version']) || '';
+            const iconUrl = info.icon || null;
+
+            currentServerData = data;
 
             cfxEmpty.style.display = 'none';
             cfxServerCard.classList.add('visible');
 
-            cfxServerName.textContent = hostname;
-            cfxServerStatus.textContent = '● Online';
-            cfxServerStatus.style.color = '#4ade80';
+            // Server Icon
+            if (iconUrl) {
+                serverIcon.innerHTML = `<img src="${iconUrl}" alt="Server Icon" />`;
+            } else {
+                serverIcon.innerHTML = `<i class="fas fa-server"></i>`;
+            }
+
+            cfxServerName.innerHTML = `
+                <span>${hostname}</span>
+                <span class="badge" style="background:rgba(74,222,128,0.15);color:#4ade80;">● Online</span>
+            `;
             cfxServerIp.textContent = endpoint || 'N/A';
 
             cfxPlayers.textContent = `${clients} / ${maxClients}`;
@@ -2960,10 +3277,12 @@
             cfxTxadmin.textContent = txAdmin || 'N/A';
             cfxVersion.textContent = server || 'N/A';
 
-            // Spieler rendern
             renderPlayers(players, playerSearchInput.value);
-            // Resources rendern
             renderResources(resources, resourceSearchInput.value);
+
+            // Save Button Status
+            updateSaveButton(checkIfSaved(currentServerCode));
+            renderSavedServers();
         }
 
         // Such-Events
@@ -2998,7 +3317,8 @@
                 return;
             }
 
-            // Suchfelder zurücksetzen
+            currentServerCode = code;
+
             playerSearchInput.value = '';
             resourceSearchInput.value = '';
             playerSearchCount.textContent = '';
@@ -3058,11 +3378,11 @@
         setFilter('all');
         cfxEmpty.style.display = 'block';
         cfxServerCard.classList.remove('visible');
+        renderSavedServers();
 
         console.log('%c🔐 DXSETUP Checker geladen!', 'font-size:16px; font-weight:bold; color:#8b9cf7;');
         console.log('%c🎵 Musik ist standardmäßig aus (gemutet)', 'font-size:12px; color:#8892b0;');
-        console.log('%c🎮 CFX: Gib einen Code wie "221" ein', 'font-size:12px; color:#8892b0;');
-        console.log('%c🔍 CFX: Spieler und Resources können durchsucht werden', 'font-size:12px; color:#4ade80;');
+        console.log('%c🎮 CFX: Server suchen, speichern und durchsuchen', 'font-size:12px; color:#4ade80;');
     </script>
 </body>
 </html>
