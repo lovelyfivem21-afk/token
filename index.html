@@ -147,7 +147,6 @@
             50% { transform: translateY(-4px) scale(1.02); }
         }
 
-        /* Dynamischer Titel - wird per JS gesetzt */
         .page-title {
             font-family: 'Space Grotesk', sans-serif;
             font-weight: 700;
@@ -282,7 +281,6 @@
             50% { transform: rotate(12deg) translateX(60%); }
         }
 
-        /* ===== CFX CHECKER ===== */
         .cfx-input-area {
             display: flex;
             gap: 0.8rem;
@@ -453,6 +451,50 @@
             font-family: 'Inter', sans-serif;
         }
 
+        /* NEU: Suchleisten für CFX Listen */
+        .cfx-search-area {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .cfx-search-area input {
+            flex: 1;
+            min-width: 120px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 8px;
+            padding: 0.3rem 0.7rem;
+            color: #e4e9ff;
+            font-size: 0.75rem;
+            outline: none;
+            font-family: 'JetBrains Mono', monospace;
+            transition: 0.3s;
+        }
+        .cfx-search-area input:focus { border-color: rgba(139, 124, 255, 0.2); }
+        .cfx-search-area input::placeholder { color: #4a507a; }
+        .cfx-search-area .search-clear {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 6px;
+            color: var(--text-2);
+            padding: 0.2rem 0.6rem;
+            cursor: pointer;
+            font-size: 0.6rem;
+            transition: 0.2s;
+        }
+        .cfx-search-area .search-clear:hover {
+            background: rgba(251, 69, 112, 0.15);
+            color: var(--rose);
+            border-color: rgba(251, 69, 112, 0.2);
+        }
+        .cfx-search-area .search-count {
+            font-size: 0.65rem;
+            color: var(--text-2);
+            white-space: nowrap;
+        }
+
         .cfx-player-list, .cfx-resource-list {
             max-height: 250px;
             overflow-y: auto;
@@ -496,7 +538,6 @@
         }
         .cfx-empty i { font-size: 3rem; display: block; margin-bottom: 0.8rem; opacity: 0.2; }
 
-        /* Discord */
         .field-shell {
             position: relative;
             border-radius: 14px;
@@ -1001,7 +1042,6 @@
         }
         .music-player .status-dot.muted { background: var(--rose); animation: none; opacity: 0.5; }
 
-        /* Manager */
         .manager-input-area {
             display: flex;
             gap: 0.6rem;
@@ -1199,6 +1239,8 @@
             .cfx-stats-grid { grid-template-columns: repeat(2, 1fr); }
             .cfx-server-header .name { font-size: 1.1rem; }
             .page-title { font-size: clamp(1.8rem, 6vw, 2.8rem); }
+            .cfx-search-area { flex-wrap: wrap; }
+            .cfx-search-area input { min-width: 80px; }
         }
         @media (max-width: 480px) {
             .wrap { --zoom: 0.78; }
@@ -1246,7 +1288,6 @@
                 <span class="setup">SETUP</span>
                 <span class="badge">v2.0</span>
             </div>
-            <!-- Dynamischer Titel -->
             <h1 class="page-title" id="pageTitle"><span class="highlight">Discord</span></h1>
             <div class="page-sub" id="pageSub">Token Checker</div>
         </div>
@@ -1448,15 +1489,27 @@
                             <div class="cfx-detail-item"><span class="key">Server Version</span><span class="val" id="cfxVersion">—</span></div>
                         </div>
 
+                        <!-- Spieler mit Suche -->
                         <div class="cfx-section-title">
                             <i class="fas fa-users"></i> Spieler <span class="count" id="cfxPlayerCount">(0)</span>
+                        </div>
+                        <div class="cfx-search-area">
+                            <input type="text" id="playerSearchInput" placeholder="🔍 Spieler durchsuchen..." />
+                            <span class="search-count" id="playerSearchCount"></span>
+                            <button class="search-clear" id="clearPlayerSearch">✕</button>
                         </div>
                         <div class="cfx-player-list" id="cfxPlayerList">
                             <div class="cfx-player-item" style="color:var(--text-2);">Keine Spieler</div>
                         </div>
 
+                        <!-- Resources mit Suche -->
                         <div class="cfx-section-title">
                             <i class="fas fa-cubes"></i> Resources <span class="count" id="cfxResourceCount">(0)</span>
+                        </div>
+                        <div class="cfx-search-area">
+                            <input type="text" id="resourceSearchInput" placeholder="🔍 Resources durchsuchen..." />
+                            <span class="search-count" id="resourceSearchCount"></span>
+                            <button class="search-clear" id="clearResourceSearch">✕</button>
                         </div>
                         <div class="cfx-resource-list" id="cfxResourceList">
                             <div class="cfx-resource-item" style="color:var(--text-2);">Keine Resources</div>
@@ -1468,9 +1521,7 @@
         </div>
 
         <div class="footer">
-            <a href="#" class="btn-ghost" style="text-decoration:none;padding:10px 18px;border-radius:999px;display:inline-flex;align-items:center;gap:6px;border:1px solid rgba(255,255,255,0.1);color:var(--text-1);font-size:0.8rem;">
-                <span class="ic">🗝</span> Account Manager
-            </a>
+            <!-- Account Manager Link entfernt -->
         </div>
         <div class="credit">◈ by DXSETUP</div>
 
@@ -2753,7 +2804,7 @@
         window.addRockstarManual = addRockstarManual;
 
         // ============================================================
-        // CFX CHECKER - ECHTE API
+        // CFX CHECKER - ECHTE API mit Suchfunktion
         // ============================================================
         const cfxInput = document.getElementById('cfxInput');
         const cfxLookupBtn = document.getElementById('cfxLookupBtn');
@@ -2780,6 +2831,15 @@
         const cfxPlayerCount = document.getElementById('cfxPlayerCount');
         const cfxResourceCount = document.getElementById('cfxResourceCount');
 
+        // Suchfeld-Elemente
+        const playerSearchInput = document.getElementById('playerSearchInput');
+        const resourceSearchInput = document.getElementById('resourceSearchInput');
+        const playerSearchCount = document.getElementById('playerSearchCount');
+        const resourceSearchCount = document.getElementById('resourceSearchCount');
+
+        let currentPlayerData = [];
+        let currentResourceData = [];
+
         function stripColor(str) {
             if (!str) return '';
             return str.replace(/\^[0-9]/g, '');
@@ -2793,6 +2853,62 @@
             code = code.split('/')[0];
             code = code.trim();
             return code || null;
+        }
+
+        function renderPlayers(players, searchTerm = '') {
+            currentPlayerData = players || [];
+            const term = searchTerm.toLowerCase().trim();
+
+            let filtered = currentPlayerData;
+            if (term) {
+                filtered = currentPlayerData.filter(p =>
+                    (p.name || '').toLowerCase().includes(term) ||
+                    String(p.id || '').includes(term)
+                );
+            }
+
+            playerSearchCount.textContent = filtered.length > 0 ? `${filtered.length} / ${currentPlayerData.length}` : '';
+
+            if (filtered.length === 0) {
+                cfxPlayerList.innerHTML = `<div class="cfx-player-item" style="color:var(--text-2);">${term ? 'Keine Spieler gefunden' : 'Keine Spieler'}</div>`;
+                return;
+            }
+
+            cfxPlayerList.innerHTML = '';
+            filtered.forEach(p => {
+                const div = document.createElement('div');
+                div.className = 'cfx-player-item';
+                div.innerHTML =
+                    `<span class="id">${p.id}</span><span class="name">${p.name || 'Unbekannt'}</span><span class="ping">${p.ping || 0}ms</span>`;
+                cfxPlayerList.appendChild(div);
+            });
+            cfxPlayerCount.textContent = `(${currentPlayerData.length})`;
+        }
+
+        function renderResources(resources, searchTerm = '') {
+            currentResourceData = resources || [];
+            const term = searchTerm.toLowerCase().trim();
+
+            let filtered = currentResourceData;
+            if (term) {
+                filtered = currentResourceData.filter(r => r.toLowerCase().includes(term));
+            }
+
+            resourceSearchCount.textContent = filtered.length > 0 ? `${filtered.length} / ${currentResourceData.length}` : '';
+
+            if (filtered.length === 0) {
+                cfxResourceList.innerHTML = `<div class="cfx-resource-item" style="color:var(--text-2);">${term ? 'Keine Resources gefunden' : 'Keine Resources'}</div>`;
+                return;
+            }
+
+            cfxResourceList.innerHTML = '';
+            filtered.slice(0, 100).forEach(r => {
+                const div = document.createElement('div');
+                div.className = 'cfx-resource-item';
+                div.innerHTML = `<span class="rname">${r}</span>`;
+                cfxResourceList.appendChild(div);
+            });
+            cfxResourceCount.textContent = `(${currentResourceData.length})`;
         }
 
         function renderServer(data) {
@@ -2844,84 +2960,86 @@
             cfxTxadmin.textContent = txAdmin || 'N/A';
             cfxVersion.textContent = server || 'N/A';
 
-            cfxPlayerList.innerHTML = '';
-            if (players.length > 0) {
-                players.forEach(p => {
-                    const div = document.createElement('div');
-                    div.className = 'cfx-player-item';
-                    div.innerHTML =
-                        `<span class="id">${p.id}</span><span class="name">${p.name}</span><span class="ping">${p.ping}ms</span>`;
-                    cfxPlayerList.appendChild(div);
-                });
-                cfxPlayerCount.textContent = `(${players.length})`;
-            } else {
-                cfxPlayerList.innerHTML = `<div class="cfx-player-item" style="color:var(--text-2);">Keine Spieler</div>`;
-                cfxPlayerCount.textContent = '(0)';
-            }
-
-            cfxResourceList.innerHTML = '';
-            if (resources.length > 0) {
-                resources.slice(0, 50).forEach(r => {
-                    const div = document.createElement('div');
-                    div.className = 'cfx-resource-item';
-                    div.innerHTML = `<span class="rname">${r}</span>`;
-                    cfxResourceList.appendChild(div);
-                });
-                cfxResourceCount.textContent = `(${resources.length})`;
-            } else {
-                cfxResourceList.innerHTML = `<div class="cfx-resource-item" style="color:var(--text-2);">Keine Resources</div>`;
-                cfxResourceCount.textContent = '(0)';
-            }
+            // Spieler rendern
+            renderPlayers(players, playerSearchInput.value);
+            // Resources rendern
+            renderResources(resources, resourceSearchInput.value);
         }
+
+        // Such-Events
+        playerSearchInput.addEventListener('input', function() {
+            const data = currentPlayerData || [];
+            renderPlayers(data, this.value);
+        });
+
+        resourceSearchInput.addEventListener('input', function() {
+            const data = currentResourceData || [];
+            renderResources(data, this.value);
+        });
+
+        document.getElementById('clearPlayerSearch').addEventListener('click', function() {
+            playerSearchInput.value = '';
+            renderPlayers(currentPlayerData, '');
+            playerSearchInput.focus();
+        });
+
+        document.getElementById('clearResourceSearch').addEventListener('click', function() {
+            resourceSearchInput.value = '';
+            renderResources(currentResourceData, '');
+            resourceSearchInput.focus();
+        });
 
         async function performLookup() {
-    const input = cfxInput.value;
-    const code = extractCfxCode(input);
+            const input = cfxInput.value;
+            const code = extractCfxCode(input);
 
-    if (!code || code.length < 1) {
-        showToast('❌ Bitte gib einen gültigen CFX-Code ein!', 'error');
-        return;
-    }
+            if (!code || code.length < 1) {
+                showToast('❌ Bitte gib einen gültigen CFX-Code ein!', 'error');
+                return;
+            }
 
-    cfxLoading.style.display = 'block';
-    cfxError.style.display = 'none';
-    cfxServerCard.classList.remove('visible');
-    cfxEmpty.style.display = 'none';
+            // Suchfelder zurücksetzen
+            playerSearchInput.value = '';
+            resourceSearchInput.value = '';
+            playerSearchCount.textContent = '';
+            resourceSearchCount.textContent = '';
 
-    try {
-        const response = await fetch(
-            `https://frontend.cfx-services.net/api/servers/single/${encodeURIComponent(code)}`
-        );
+            cfxLoading.style.display = 'block';
+            cfxError.style.display = 'none';
+            cfxServerCard.classList.remove('visible');
+            cfxEmpty.style.display = 'none';
 
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
+            try {
+                const response = await fetch(
+                    `https://frontend.cfx-services.net/api/servers/single/${encodeURIComponent(code)}`
+                );
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                if (data && data.Data) {
+                    renderServer(data);
+                    showToast('✅ Server gefunden!', 'success');
+                    triggerFlash();
+                } else {
+                    throw new Error('Keine Daten empfangen');
+                }
+
+            } catch (error) {
+                cfxLoading.style.display = 'none';
+                cfxError.style.display = 'block';
+                cfxErrorText.textContent =
+                    `Server mit Code "${code}" nicht gefunden. Bitte überprüfe den Code.`;
+                showToast('❌ Server nicht gefunden!', 'error');
+                console.error('CFX API Error:', error);
+
+            } finally {
+                cfxLoading.style.display = 'none';
+            }
         }
-
-        const data = await response.json();
-
-        if (data && data.Data) {
-            renderServer(data);
-            showToast('✅ Server gefunden!', 'success');
-            triggerFlash();
-        } else {
-            throw new Error('Keine Daten empfangen');
-        }
-
-    } catch (error) {
-        cfxLoading.style.display = 'none';
-        cfxError.style.display = 'block';
-
-        cfxErrorText.textContent =
-            `Server mit Code "${code}" nicht gefunden. Bitte überprüfe den Code.`;
-
-        showToast('❌ Server nicht gefunden!', 'error');
-
-        console.error('CFX API Error:', error);
-
-    } finally {
-        cfxLoading.style.display = 'none';
-    }
-}
 
         cfxInput.addEventListener('keydown', function(e) {
             if (e.key === 'Enter') {
@@ -2944,6 +3062,7 @@
         console.log('%c🔐 DXSETUP Checker geladen!', 'font-size:16px; font-weight:bold; color:#8b9cf7;');
         console.log('%c🎵 Musik ist standardmäßig aus (gemutet)', 'font-size:12px; color:#8892b0;');
         console.log('%c🎮 CFX: Gib einen Code wie "221" ein', 'font-size:12px; color:#8892b0;');
+        console.log('%c🔍 CFX: Spieler und Resources können durchsucht werden', 'font-size:12px; color:#4ade80;');
     </script>
 </body>
 </html>
