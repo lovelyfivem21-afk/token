@@ -3,176 +3,2939 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Token Checker</title>
+    <title>DXSETUP · Checker</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect x='5' y='5' width='90' height='90' rx='20' fill='%236c7af0'/><rect x='12' y='12' width='76' height='76' rx='14' fill='%230b0d1a'/><text x='50' y='68' font-family='Arial, sans-serif' font-size='40' font-weight='bold' text-anchor='middle' fill='%236c7af0' letter-spacing='2'>DX</text><text x='50' y='88' font-family='Arial, sans-serif' font-size='12' font-weight='bold' text-anchor='middle' fill='%234a507a' letter-spacing='4'>SETUP</text></svg>" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
-    <link rel="stylesheet" href="style.css" />
+    <style>
+        :root {
+            --bg-0: #050308;
+            --bg-1: #0e0a1c;
+            --bg-2: #1a1030;
+            --gold: #f4c95d;
+            --gold-soft: #f4c95d99;
+            --violet: #8b7cff;
+            --violet-soft: #8b7cff55;
+            --mint: #4ade80;
+            --rose: #fb4570;
+            --text-0: #f4f1ff;
+            --text-1: #b7aed6;
+            --text-2: #756c96;
+            --dur: 1;
+            --zoom: 0.92;
+        }
+        @media (prefers-reduced-motion: reduce) { :root { --dur: 0.001; } }
+
+        * { box-sizing: border-box; margin: 0; }
+        html, body {
+            height: 100%;
+            background: var(--bg-0);
+            color: var(--text-0);
+            font-family: 'Inter', system-ui, sans-serif;
+            overflow-x: hidden;
+        }
+        body {
+            background: radial-gradient(140% 100% at 50% -20%, var(--bg-2) 0%, var(--bg-1) 45%, var(--bg-0) 100%);
+            background-size: 200% 200%;
+            animation: bgshift calc(14s / var(--dur)) ease-in-out infinite;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 1.5rem;
+        }
+
+        .wrap {
+            transform: scale(var(--zoom));
+            transform-origin: center top;
+            width: 100%;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 0 40px;
+        }
+
+        @keyframes bgshift {
+            0%,100% { background-position: 50% 0%; }
+            50% { background-position: 50% 60%; }
+        }
+
+        canvas#field {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .flash {
+            position: fixed;
+            inset: 0;
+            z-index: 50;
+            background: radial-gradient(circle at 50% 30%, rgba(244, 201, 93, 0.9), transparent 60%);
+            opacity: 0;
+            pointer-events: none;
+            mix-blend-mode: screen;
+        }
+        .flash.go { animation: flashpop calc(0.55s / var(--dur)) ease-out; }
+        @keyframes flashpop {
+            0% { opacity: 0; }
+            12% { opacity: 0.85; }
+            100% { opacity: 0; }
+        }
+
+        .head {
+            text-align: center;
+            margin-bottom: 28px;
+            padding-top: 6px;
+        }
+
+        .dx-logo {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0;
+            margin-bottom: 12px;
+            filter: drop-shadow(0 0 30px rgba(139, 124, 255, 0.25)) drop-shadow(0 0 60px rgba(244, 201, 93, 0.1));
+            animation: logoFloat calc(3.6s / var(--dur)) ease-in-out infinite;
+            user-select: none;
+        }
+        .dx-logo .dx {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            font-size: 2.8rem;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, #8b7cff 0%, #6c5ce7 50%, #f4c95d 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: none;
+            line-height: 1;
+        }
+        .dx-logo .setup {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+            font-size: 0.95rem;
+            letter-spacing: 0.25em;
+            color: var(--text-2);
+            margin-left: 4px;
+            opacity: 0.7;
+            line-height: 1;
+            display: flex;
+            align-items: flex-end;
+            padding-bottom: 4px;
+        }
+        .dx-logo .badge {
+            font-family: 'Inter', sans-serif;
+            font-size: 0.5rem;
+            font-weight: 700;
+            letter-spacing: 0.15em;
+            background: rgba(139, 124, 255, 0.15);
+            border: 1px solid rgba(139, 124, 255, 0.2);
+            color: var(--violet);
+            padding: 2px 8px;
+            border-radius: 999px;
+            margin-left: 8px;
+            text-transform: uppercase;
+            line-height: 1.6;
+        }
+
+        @keyframes logoFloat {
+            0%,100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-4px) scale(1.02); }
+        }
+
+        /* Dynamischer Titel - wird per JS gesetzt */
+        .page-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            font-size: clamp(2.2rem, 7vw, 4rem);
+            letter-spacing: 0.06em;
+            margin: 0;
+            background: linear-gradient(180deg, #fff6de 0%, var(--gold) 45%, #b98a2c 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation: titleglow calc(2.4s / var(--dur)) ease-in-out infinite;
+            transition: all 0.3s ease;
+        }
+        .page-title .highlight {
+            background: linear-gradient(180deg, #fff6de 0%, var(--gold) 45%, #b98a2c 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        @keyframes titleglow {
+            0%,100% { filter: drop-shadow(0 0 18px rgba(244, 201, 93, 0.35)) drop-shadow(0 0 40px rgba(139, 124, 255, 0.15)); }
+            50% { filter: drop-shadow(0 0 40px rgba(244, 201, 93, 0.7)) drop-shadow(0 0 80px rgba(139, 124, 255, 0.35)); }
+        }
+
+        .page-sub {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            color: var(--text-2);
+            margin-top: 8px;
+            animation: subpulse calc(3s / var(--dur)) ease-in-out infinite;
+        }
+        @keyframes subpulse { 0%,100% { opacity: 0.6; } 50% { opacity: 1; } }
+
+        .nav-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.8rem;
+            margin: 1.6rem 0 1.8rem;
+        }
+        .nav-btn {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.3rem;
+            padding: 0.9rem 0.5rem;
+            border-radius: 18px;
+            border: 1px solid rgba(255,255,255,0.06);
+            background: rgba(255,255,255,0.02);
+            backdrop-filter: blur(8px);
+            color: var(--text-1);
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            font-size: 0.8rem;
+            text-decoration: none;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            cursor: pointer;
+            overflow: hidden;
+            min-height: 70px;
+        }
+        .nav-btn i {
+            font-size: 1.4rem;
+            margin-bottom: 1px;
+            transition: transform 0.3s ease;
+        }
+        .nav-btn span { position: relative; z-index: 2; }
+        .nav-btn .glow {
+            position: absolute;
+            inset: 0;
+            border-radius: 18px;
+            background: radial-gradient(circle at 50% 0%, rgba(139,124,255,0.15), transparent 70%);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+        .nav-btn:hover {
+            transform: translateY(-4px) scale(1.02);
+            border-color: rgba(139,124,255,0.25);
+            box-shadow: 0 12px 40px -12px rgba(0,0,0,0.6), 0 0 30px -8px var(--violet-soft);
+        }
+        .nav-btn:hover .glow { opacity: 1; }
+        .nav-btn:hover i { transform: scale(1.1) translateY(-2px); }
+        .nav-btn.active {
+            border-color: var(--violet);
+            background: rgba(139,124,255,0.08);
+            box-shadow: 0 0 40px -10px var(--violet-soft);
+        }
+        .nav-btn.active i { color: var(--violet); }
+        .nav-btn.discord i { color: #5865f2; }
+        .nav-btn.steam i { color: #1b2838; }
+        .nav-btn.rockstar i { color: var(--gold); }
+        .nav-btn.cfx i { color: #ff6b35; }
+
+        .card-outer {
+            position: relative;
+            border-radius: 28px;
+            padding: 2px;
+            background: conic-gradient(from var(--ang, 0deg), var(--gold), var(--violet), var(--mint), var(--rose), var(--gold));
+            animation: rotateBorder calc(6s / var(--dur)) linear infinite;
+            box-shadow: 0 0 60px -10px rgba(139, 124, 255, 0.35);
+        }
+        @property --ang { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+        @keyframes rotateBorder { to { --ang: 360deg; } }
+
+        .card {
+            background: rgba(15, 11, 28, 0.88);
+            border-radius: 26px;
+            padding: 28px;
+            backdrop-filter: blur(20px);
+            position: relative;
+            overflow: hidden;
+            transition: transform .12s ease-out;
+            transform-style: preserve-3d;
+            min-height: 380px;
+        }
+        .card::before {
+            content: "";
+            position: absolute;
+            top: -60%;
+            left: -30%;
+            width: 80%;
+            height: 220%;
+            background: linear-gradient(120deg, transparent, rgba(139, 124, 255, 0.08), transparent);
+            transform: rotate(12deg) translateX(-40%);
+            animation: sheen calc(4.5s / var(--dur)) ease-in-out infinite;
+            pointer-events: none;
+        }
+        @keyframes sheen {
+            0%,100% { transform: rotate(12deg) translateX(-60%); }
+            50% { transform: rotate(12deg) translateX(60%); }
+        }
+
+        /* ===== CFX CHECKER ===== */
+        .cfx-input-area {
+            display: flex;
+            gap: 0.8rem;
+            flex-wrap: wrap;
+            margin-bottom: 1.2rem;
+            align-items: center;
+        }
+        .cfx-input-area input {
+            flex: 1;
+            min-width: 200px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 12px;
+            padding: 0.7rem 1rem;
+            color: #e4e9ff;
+            font-size: 0.85rem;
+            outline: none;
+            font-family: 'JetBrains Mono', monospace;
+            transition: 0.3s;
+        }
+        .cfx-input-area input:focus { border-color: rgba(139, 124, 255, 0.2); }
+        .cfx-input-area input::placeholder { color: #4a507a; }
+        .cfx-input-area .btn { padding: 0.6rem 1.5rem; font-size: 0.8rem; }
+
+        .cfx-hint {
+            color: #4a507a;
+            font-size: 0.7rem;
+            margin-bottom: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+        }
+        .cfx-hint i { color: #8b9cf7; }
+        .cfx-hint code {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 0.05rem 0.35rem;
+            border-radius: 4px;
+            font-size: 0.65rem;
+            color: #a78bfa;
+        }
+
+        .cfx-server-card {
+            background: rgba(0, 0, 0, 0.25);
+            border-radius: 16px;
+            padding: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            margin-bottom: 1.2rem;
+            display: none;
+        }
+        .cfx-server-card.visible { display: block; animation: fadeUp 0.4s ease-out; }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .cfx-server-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        .cfx-server-header .name {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--text-0);
+        }
+        .cfx-server-header .name .badge {
+            font-size: 0.6rem;
+            font-family: 'Inter', sans-serif;
+            background: rgba(74, 222, 128, 0.15);
+            color: var(--mint);
+            padding: 0.1rem 0.6rem;
+            border-radius: 999px;
+            margin-left: 0.5rem;
+            font-weight: 600;
+        }
+        .cfx-server-header .ip {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            color: var(--text-2);
+            background: rgba(0, 0, 0, 0.3);
+            padding: 0.3rem 0.8rem;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.04);
+        }
+
+        .cfx-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 0.8rem;
+            margin-bottom: 1rem;
+        }
+        .cfx-stat {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            padding: 0.6rem 1rem;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+        }
+        .cfx-stat .value {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--text-0);
+        }
+        .cfx-stat .label {
+            font-size: 0.6rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-2);
+            margin-top: 2px;
+        }
+        .cfx-stat .value.players { color: var(--mint); }
+
+        .cfx-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+            margin-bottom: 1rem;
+        }
+        .cfx-tags .tag {
+            font-size: 0.6rem;
+            padding: 0.1rem 0.6rem;
+            border-radius: 999px;
+            background: rgba(139, 124, 255, 0.1);
+            border: 1px solid rgba(139, 124, 255, 0.1);
+            color: var(--text-1);
+        }
+        .cfx-tags .tag.gold { background: rgba(244, 201, 93, 0.1); border-color: rgba(244, 201, 93, 0.1); color: var(--gold); }
+        .cfx-tags .tag.mint { background: rgba(74, 222, 128, 0.1); border-color: rgba(74, 222, 128, 0.1); color: var(--mint); }
+
+        .cfx-details-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 0.6rem;
+            margin: 1rem 0;
+        }
+        .cfx-detail-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.4rem 0.8rem;
+            background: rgba(0, 0, 0, 0.15);
+            border-radius: 6px;
+            font-size: 0.75rem;
+            border: 1px solid rgba(255, 255, 255, 0.02);
+        }
+        .cfx-detail-item .key { color: var(--text-2); }
+        .cfx-detail-item .val { color: var(--text-1); font-family: 'JetBrains Mono', monospace; }
+
+        .cfx-section-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-1);
+            margin: 1.2rem 0 0.6rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .cfx-section-title .count {
+            font-size: 0.7rem;
+            color: var(--text-2);
+            font-weight: 400;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .cfx-player-list, .cfx-resource-list {
+            max-height: 250px;
+            overflow-y: auto;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+        }
+        .cfx-player-list::-webkit-scrollbar, .cfx-resource-list::-webkit-scrollbar { width: 4px; }
+        .cfx-player-list::-webkit-scrollbar-thumb, .cfx-resource-list::-webkit-scrollbar-thumb { background: rgba(139, 124, 255, 0.2); border-radius: 4px; }
+
+        .cfx-player-item, .cfx-resource-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.3rem 0.8rem;
+            font-size: 0.75rem;
+            font-family: 'JetBrains Mono', monospace;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+            color: var(--text-1);
+        }
+        .cfx-player-item .id { color: var(--text-2); min-width: 30px; }
+        .cfx-player-item .name { flex: 1; margin: 0 0.5rem; }
+        .cfx-player-item .ping { color: var(--text-2); min-width: 40px; text-align: right; }
+        .cfx-resource-item { font-size: 0.7rem; padding: 0.2rem 0.8rem; }
+        .cfx-resource-item .rname { color: var(--text-1); }
+
+        .cfx-loading {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-2);
+        }
+        .cfx-loading i { font-size: 2rem; display: block; margin-bottom: 0.5rem; opacity: 0.3; }
+        .cfx-error {
+            text-align: center;
+            padding: 2rem;
+            color: var(--rose);
+        }
+        .cfx-error i { font-size: 2rem; display: block; margin-bottom: 0.5rem; opacity: 0.3; }
+        .cfx-empty {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--text-2);
+        }
+        .cfx-empty i { font-size: 3rem; display: block; margin-bottom: 0.8rem; opacity: 0.2; }
+
+        /* Discord */
+        .field-shell {
+            position: relative;
+            border-radius: 14px;
+            overflow: hidden;
+            border: 1px solid rgba(139, 124, 255, 0.25);
+            background: rgba(6, 5, 14, 0.6);
+            transition: border-color .25s ease, box-shadow .25s ease;
+        }
+        .field-shell:focus-within {
+            border-color: var(--violet);
+            box-shadow: 0 0 0 5px rgba(139, 124, 255, 0.18), 0 0 44px -4px var(--violet-soft);
+        }
+        textarea {
+            width: 100%;
+            min-height: 130px;
+            resize: vertical;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--text-0);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.88rem;
+            line-height: 1.6;
+            padding: 16px 18px;
+            caret-color: var(--gold);
+        }
+        textarea::placeholder { color: var(--text-2); }
+
+        .scan-line {
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--gold) 20%, #fff 50%, var(--gold) 80%, transparent);
+            box-shadow: 0 0 30px 6px rgba(244, 201, 93, 0.8), 0 0 70px 14px rgba(139, 124, 255, 0.4);
+            opacity: 0;
+            pointer-events: none;
+        }
+        .scan-line.run { animation: sweep calc(0.9s / var(--dur)) cubic-bezier(.5, 0, .5, 1); }
+        @keyframes sweep {
+            0% { top: 0; opacity: 0; }
+            8% { opacity: 1; }
+            92% { opacity: 1; }
+            100% { top: 100%; opacity: 0; }
+        }
+
+        .row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 16px;
+        }
+        button {
+            font-family: 'Inter', sans-serif;
+            font-weight: 700;
+            font-size: 0.82rem;
+            border: none;
+            cursor: pointer;
+            border-radius: 999px;
+            padding: 10px 18px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--text-0);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform .18s cubic-bezier(.34, 1.56, .64, 1), box-shadow .25s ease, background .2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        button:active { transform: translateY(1px) scale(0.94); }
+        button:hover { transform: translateY(-3px) scale(1.04); }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #a89bff, #6f5ef2);
+            box-shadow: 0 10px 30px -8px rgba(111, 94, 242, 0.85);
+            animation: primPulse calc(2.2s / var(--dur)) ease-in-out infinite;
+        }
+        @keyframes primPulse {
+            0%,100% { box-shadow: 0 10px 30px -8px rgba(111, 94, 242, 0.85); }
+            50% { box-shadow: 0 10px 46px -6px rgba(111, 94, 242, 1), 0 0 30px 4px rgba(139, 124, 255, 0.4); }
+        }
+        .btn-primary:hover { box-shadow: 0 18px 46px -6px rgba(111, 94, 242, 1), 0 0 40px 6px rgba(139, 124, 255, 0.55); }
+
+        .btn-ghost:hover { background: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.25); box-shadow: 0 8px 24px -10px rgba(255, 255, 255, 0.2); }
+        .btn-gold {
+            background: linear-gradient(135deg, #ffe08a, #f4c95d);
+            color: #2a1f04;
+            box-shadow: 0 10px 30px -8px rgba(244, 201, 93, 0.7);
+        }
+        .btn-gold:hover { box-shadow: 0 18px 40px -6px rgba(244, 201, 93, 0.95), 0 0 34px 6px rgba(244, 201, 93, 0.5); }
+        .btn-cfx {
+            background: linear-gradient(135deg, #ff6b35, #e8451a);
+            color: #fff;
+            box-shadow: 0 10px 30px -8px rgba(255, 107, 53, 0.6);
+        }
+        .btn-cfx:hover { box-shadow: 0 18px 40px -6px rgba(255, 107, 53, 0.8), 0 0 34px 6px rgba(255, 107, 53, 0.3); }
+
+        .btn-primary::after, .btn-gold::after, .btn-cfx::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: -60%;
+            width: 40%;
+            height: 100%;
+            background: linear-gradient(115deg, transparent, rgba(255, 255, 255, 0.65), transparent);
+            transform: skewX(-20deg);
+            transition: left .6s ease;
+        }
+        .btn-primary:hover::after, .btn-gold:hover::after, .btn-cfx:hover::after { left: 130%; }
+
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.55);
+            transform: scale(0);
+            opacity: 0.7;
+            pointer-events: none;
+            animation: rippleOut calc(0.6s / var(--dur)) ease-out forwards;
+        }
+        @keyframes rippleOut { to { transform: scale(4); opacity: 0; } }
+
+        .tabs {
+            display: flex;
+            gap: 6px;
+            margin-top: 14px;
+            flex-wrap: wrap;
+        }
+        .tab {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.72rem;
+            letter-spacing: 0.04em;
+            padding: 6px 14px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: var(--text-1);
+            cursor: pointer;
+            transition: all .25s cubic-bezier(.34, 1.56, .64, 1);
+        }
+        .tab.active {
+            background: rgba(139, 124, 255, 0.22);
+            border-color: var(--violet);
+            color: #fff;
+            box-shadow: 0 0 26px -4px var(--violet-soft);
+            transform: scale(1.06);
+        }
+        .tab:hover:not(.active) { border-color: rgba(255, 255, 255, 0.3); transform: translateY(-1px); }
+        .tab.account-tab {
+            background: rgba(244, 201, 93, 0.08);
+            border-color: rgba(244, 201, 93, 0.15);
+            color: var(--gold);
+        }
+        .tab.account-tab.active {
+            background: rgba(244, 201, 93, 0.2);
+            border-color: var(--gold);
+            color: #fff;
+            box-shadow: 0 0 26px -4px rgba(244, 201, 93, 0.3);
+        }
+        .tab.account-tab:hover:not(.active) { border-color: rgba(244, 201, 93, 0.3); }
+
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 18px;
+        }
+        .stat {
+            position: relative;
+            border-radius: 14px;
+            padding: 20px 16px;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            overflow: hidden;
+            cursor: pointer;
+            transition: border-color 0.3s;
+        }
+        .stat:hover { border-color: rgba(255, 255, 255, 0.15); }
+        .stat .num {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 2.4rem;
+            font-weight: 700;
+            line-height: 1;
+            display: inline-block;
+        }
+        .stat.valid .num { color: var(--mint); text-shadow: 0 0 20px rgba(74, 222, 128, 0.6), 0 0 50px rgba(74, 222, 128, 0.3); }
+        .stat.invalid .num { color: var(--rose); text-shadow: 0 0 20px rgba(251, 69, 112, 0.6), 0 0 50px rgba(251, 69, 112, 0.3); }
+        .stat .lbl { margin-top: 4px; font-size: 0.7rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-2); }
+
+        .results, .account-results {
+            margin-top: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            max-height: 300px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+        .results::-webkit-scrollbar, .account-results::-webkit-scrollbar { width: 5px; }
+        .results::-webkit-scrollbar-thumb, .account-results::-webkit-scrollbar-thumb { background: rgba(139, 124, 255, 0.4); border-radius: 4px; }
+
+        .result-row, .account-row {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            overflow: hidden;
+        }
+        .result-row.valid { border-color: rgba(74, 222, 128, 0.4); box-shadow: 0 0 24px -8px rgba(74, 222, 128, 0.5); }
+        .result-row.invalid { border-color: rgba(251, 69, 112, 0.4); box-shadow: 0 0 24px -8px rgba(251, 69, 112, 0.5); }
+        .result-row .icon { width: 20px; height: 20px; flex: 0 0 auto; display: flex; align-items: center; justify-content: center; }
+        .result-row .badge, .account-row .badge {
+            font-size: 0.6rem;
+            letter-spacing: 0.1em;
+            padding: 2px 8px;
+            border-radius: 999px;
+            text-transform: uppercase;
+            flex: 0 0 auto;
+        }
+        .result-row.valid .badge { background: rgba(74, 222, 128, 0.2); color: var(--mint); }
+        .result-row.invalid .badge { background: rgba(251, 69, 112, 0.2); color: var(--rose); }
+        .result-row .actions, .account-row .actions { display: flex; gap: 3px; flex: 0 0 auto; }
+        .result-row .actions button, .account-row .actions button {
+            background: rgba(45, 47, 72, 0.2);
+            border: none;
+            padding: 3px 6px;
+            border-radius: 5px;
+            color: #6a7099;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 0.6rem;
+        }
+        .result-row .actions button:hover, .account-row .actions button:hover { background: rgba(139, 124, 255, 0.15); color: #d6deff; }
+        .result-row .actions .login-btn, .account-row .actions .login-btn { background: rgba(244, 114, 182, 0.15); color: #f472b6; }
+        .result-row .actions .login-btn:hover, .account-row .actions .login-btn:hover { background: rgba(244, 114, 182, 0.3); color: #fff; }
+        .result-row .nitro-indicator {
+            font-size: 0.5rem;
+            padding: 0.05rem 0.35rem;
+            border-radius: 6px;
+            background: rgba(247, 212, 74, 0.1);
+            color: #f7d44a;
+            border: 1px solid rgba(247, 212, 74, 0.1);
+        }
+        .result-row .details, .account-row .details {
+            font-size: 0.6rem;
+            color: #6a7099;
+            display: flex;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+        }
+        .result-row .avatar-img {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex-shrink: 0;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+        .account-row .avatar-img {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex-shrink: 0;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+        .account-row .tag {
+            font-size: 0.5rem;
+            padding: 0.05rem 0.4rem;
+            border-radius: 8px;
+        }
+        .tag.valid { background: rgba(74, 222, 128, 0.12); color: var(--mint); border: 1px solid rgba(74, 222, 128, 0.1); }
+        .tag.invalid { background: rgba(251, 69, 112, 0.12); color: var(--rose); border: 1px solid rgba(251, 69, 112, 0.1); }
+        .tag.nitro { background: rgba(244, 201, 93, 0.12); color: var(--gold); border: 1px solid rgba(244, 201, 93, 0.1); }
+
+        .empty-hint { text-align: center; color: var(--text-2); font-size: 0.8rem; padding: 24px 10px; }
+        .progress-bar { margin-top: 12px; display: none; }
+        .progress-bar .fill { height: 3px; background: rgba(255,255,255,0.06); border-radius: 4px; overflow: hidden; }
+        .progress-bar .fill-inner { height: 100%; width: 0%; background: linear-gradient(90deg, var(--violet), var(--gold)); border-radius: 4px; transition: width 0.4s ease; }
+
+        .account-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+        .account-actions button { padding: 6px 14px; font-size: 0.7rem; }
+
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(4, 3, 10, 0.75);
+            backdrop-filter: blur(6px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 60;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .3s ease;
+        }
+        .modal-backdrop.open { opacity: 1; pointer-events: auto; }
+        .vault-door {
+            width: min(400px, 90vw);
+            background: linear-gradient(160deg, #201938, #0c0917);
+            border: 1px solid rgba(244, 201, 93, 0.35);
+            border-radius: 24px;
+            padding: 32px 26px;
+            text-align: center;
+            transform: scale(0.6) rotateX(30deg) rotateY(-20deg);
+            opacity: 0;
+            transition: transform .5s cubic-bezier(.2, 1.6, .4, 1), opacity .3s ease;
+            box-shadow: 0 50px 120px -30px rgba(0, 0, 0, 0.85), 0 0 90px -6px rgba(244, 201, 93, 0.3);
+        }
+        .modal-backdrop.open .vault-door { transform: scale(1) rotateX(0) rotateY(0); opacity: 1; }
+        .dial {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 14px;
+            border-radius: 50%;
+            border: 4px solid var(--gold);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            box-shadow: 0 0 40px -2px var(--gold-soft), inset 0 0 20px -4px rgba(244, 201, 93, 0.5);
+        }
+        .code-display {
+            font-size: 0.6rem;
+            color: #5fdfb0;
+            font-family: 'JetBrains Mono', monospace;
+            background: rgba(95, 223, 176, 0.08);
+            padding: 0.05rem 0.5rem;
+            border-radius: 4px;
+            border: 1px solid rgba(95, 223, 176, 0.1);
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .code-display:hover { background: rgba(95, 223, 176, 0.15); }
+
+        .manual-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            padding: 1.5rem;
+        }
+        .manual-modal.active { display: flex; }
+        .manual-modal-content {
+            background: rgba(9, 4, 22, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 1.8rem;
+            max-width: 420px;
+            width: 100%;
+            animation: modalSlideUp 0.4s ease-out;
+        }
+        @keyframes modalSlideUp {
+            from { opacity: 0; transform: translateY(30px) scale(0.97); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .manual-modal-content h2 {
+            color: #f0f3ff;
+            font-size: 1.2rem;
+            margin-bottom: 0.4rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .manual-modal-content h2 i { color: #8b9cf7; }
+        .manual-modal-content .sub { color: #8892b0; font-size: 0.8rem; margin-bottom: 1rem; }
+        .manual-modal-content .input-group { margin-bottom: 0.6rem; }
+        .manual-modal-content .input-group label {
+            color: #b9c2f0;
+            font-size: 0.75rem;
+            display: block;
+            margin-bottom: 2px;
+        }
+        .manual-modal-content .input-group input {
+            width: 100%;
+            padding: 0.5rem 0.8rem;
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(68, 71, 102, 0.2);
+            color: #e4e9ff;
+            font-size: 0.8rem;
+            outline: none;
+            transition: 0.3s;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .manual-modal-content .input-group input:focus { border-color: rgba(139, 124, 255, 0.3); }
+        .manual-modal-content .modal-actions {
+            display: flex;
+            gap: 0.6rem;
+            margin-top: 0.8rem;
+        }
+        .manual-modal-content .modal-actions .btn { flex: 1; justify-content: center; }
+        .manual-modal-content .modal-actions .btn-secondary {
+            background: rgba(61, 63, 94, 0.3);
+            border: 1px solid rgba(88, 92, 130, 0.15);
+            color: #d6deff;
+        }
+        .manual-modal-content .modal-actions .btn-secondary:hover { background: rgba(61, 63, 94, 0.5); }
+
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: rgba(9, 4, 22, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(68, 71, 102, 0.2);
+            border-radius: 14px;
+            padding: 12px 20px;
+            color: #e4e9ff;
+            font-size: 0.85rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+            animation: toastSlide 0.4s ease-out;
+            z-index: 70;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            max-width: 380px;
+            border-left: 4px solid var(--violet);
+        }
+        .toast.success { border-left-color: var(--mint); }
+        .toast.error { border-left-color: var(--rose); }
+        .toast.gold { border-left-color: var(--gold); }
+        @keyframes toastSlide {
+            from { opacity: 0; transform: translateY(30px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .footer { text-align: center; margin-top: 28px; }
+        .credit { text-align: center; margin-top: 32px; font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; color: var(--text-2); letter-spacing: 0.06em; }
+
+        .music-player {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(10, 8, 20, 0.75);
+            backdrop-filter: blur(16px);
+            padding: 6px 14px 6px 10px;
+            border-radius: 36px;
+            border: 1px solid rgba(255,255,255,0.06);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+        }
+        .music-player .mute-btn {
+            background: none;
+            border: none;
+            color: var(--text-1);
+            font-size: 1rem;
+            padding: 4px 6px;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 28px;
+        }
+        .music-player .mute-btn:hover { color: var(--gold); transform: scale(1.1); }
+        .music-player .track-name {
+            font-size: 0.65rem;
+            color: var(--text-2);
+            letter-spacing: 0.04em;
+            font-weight: 400;
+            max-width: 100px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .music-player .status-dot {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: var(--mint);
+            display: inline-block;
+            animation: pulse-dot 1.4s ease-in-out infinite;
+        }
+        @keyframes pulse-dot {
+            0%,100% { opacity: 0.4; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+        .music-player .status-dot.muted { background: var(--rose); animation: none; opacity: 0.5; }
+
+        /* Manager */
+        .manager-input-area {
+            display: flex;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+            align-items: flex-start;
+        }
+        .manager-input-area textarea {
+            flex: 1;
+            min-width: 180px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 10px;
+            padding: 0.5rem 0.8rem;
+            color: #e4e9ff;
+            font-size: 0.8rem;
+            outline: none;
+            font-family: 'JetBrains Mono', monospace;
+            resize: vertical;
+            min-height: 50px;
+            max-height: 100px;
+        }
+        .manager-input-area textarea:focus { border-color: rgba(139, 124, 255, 0.2); }
+        .manager-input-area textarea::placeholder { color: #4a507a; }
+        .manager-input-area .btn { padding: 0.4rem 1rem; font-size: 0.75rem; align-self: center; }
+        .manager-input-area .btn i { margin-right: 4px; }
+        .manager-input-area .btn-manual {
+            background: rgba(108, 122, 240, 0.15);
+            border-color: rgba(108, 122, 240, 0.2);
+            color: #8b9cf7;
+        }
+        .manager-input-area .btn-manual:hover { background: rgba(108, 122, 240, 0.3); }
+
+        .manager-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+            max-height: 350px;
+            overflow-y: auto;
+        }
+        .manager-list::-webkit-scrollbar { width: 4px; }
+        .manager-list::-webkit-scrollbar-track { background: rgba(26, 27, 38, 0.2); border-radius: 10px; }
+        .manager-list::-webkit-scrollbar-thumb { background: rgba(139, 124, 255, 0.15); border-radius: 10px; }
+
+        .manager-item {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            padding: 0.6rem 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: 0.2s;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+        }
+        .manager-item:hover { border-color: rgba(139, 124, 255, 0.08); }
+        .manager-item .info {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            flex: 1;
+            min-width: 0;
+        }
+        .manager-item .info .avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: rgba(45, 47, 72, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+        .manager-item .info .avatar i { color: #6a7099; font-size: 0.9rem; }
+        .manager-item .info .name {
+            color: #e4e9ff;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        .manager-item .info .details {
+            color: #6a7099;
+            font-size: 0.65rem;
+            display: flex;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+        }
+        .manager-item .info .details .label { color: #4a507a; }
+        .manager-item .badge-status {
+            padding: 0.05rem 0.5rem;
+            border-radius: 8px;
+            font-size: 0.55rem;
+            font-weight: 600;
+        }
+        .badge-status.valid { background: rgba(74, 222, 128, 0.1); color: #4ade80; border: 1px solid rgba(74, 222, 128, 0.1); }
+        .badge-status.pending { background: rgba(167, 139, 250, 0.08); color: #a78bfa; border: 1px solid rgba(167, 139, 250, 0.08); }
+        .badge-status.generated { background: rgba(247, 212, 74, 0.12); color: #f7d44a; border: 1px solid rgba(247, 212, 74, 0.1); }
+        .manager-item .actions {
+            display: flex;
+            gap: 0.2rem;
+        }
+        .manager-item .actions button {
+            background: rgba(45, 47, 72, 0.2);
+            border: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 5px;
+            color: #6a7099;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 0.6rem;
+        }
+        .manager-item .actions button:hover {
+            background: rgba(139, 124, 255, 0.15);
+            color: #d6deff;
+        }
+        .manager-item .actions button.delete:hover {
+            background: rgba(251, 69, 112, 0.15);
+            color: var(--rose);
+        }
+        .manager-item .actions button.twofa-btn {
+            background: rgba(247, 212, 74, 0.12);
+            color: #f7d44a;
+            width: auto;
+            padding: 0 6px;
+            font-weight: 600;
+        }
+        .manager-item .actions button.twofa-btn:hover {
+            background: rgba(247, 212, 74, 0.25);
+            color: #fff;
+        }
+        .manager-item .actions button.twofa-refresh {
+            background: rgba(95, 223, 176, 0.12);
+            color: #5fdfb0;
+            width: auto;
+            padding: 0 6px;
+            font-weight: 600;
+        }
+        .manager-item .actions button.twofa-refresh:hover {
+            background: rgba(95, 223, 176, 0.25);
+            color: #fff;
+        }
+
+        .manager-stats {
+            display: flex;
+            gap: 1.2rem;
+            flex-wrap: wrap;
+            padding: 0.4rem 0.8rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            margin-bottom: 0.8rem;
+            font-size: 0.75rem;
+            color: #8892b0;
+        }
+        .manager-stats span { display: flex; align-items: center; gap: 4px; }
+        .manager-stats span:first-child { color: #8b9cf7; }
+        .manager-stats span:nth-child(2) { color: #4ade80; }
+
+        .batch-input-hint {
+            color: #4a507a;
+            font-size: 0.7rem;
+            margin-bottom: 0.4rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+        }
+        .batch-input-hint i { color: #8b9cf7; }
+        .batch-input-hint code {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 0.05rem 0.35rem;
+            border-radius: 4px;
+            font-size: 0.65rem;
+            color: #a78bfa;
+        }
+
+        @media (max-width: 1024px) { .wrap { --zoom: 0.88; } }
+        @media (max-width: 768px) {
+            .wrap { --zoom: 0.85; }
+            .nav-grid { grid-template-columns: repeat(2, 1fr); gap: 0.6rem; }
+            .nav-btn { min-height: 60px; padding: 0.6rem 0.3rem; font-size: 0.7rem; }
+            .nav-btn i { font-size: 1.2rem; }
+            .card { padding: 18px; }
+            .row button { font-size: 0.7rem; padding: 6px 12px; }
+            .stats { grid-template-columns: 1fr 1fr; }
+            .music-player { bottom: 14px; left: 14px; padding: 5px 12px 5px 8px; }
+            .music-player .track-name { max-width: 70px; font-size: 0.6rem; }
+            .tabs { gap: 4px; }
+            .tab { font-size: 0.65rem; padding: 4px 10px; }
+            .dx-logo .dx { font-size: 2.2rem; }
+            .dx-logo .setup { font-size: 0.8rem; }
+            .dx-logo .badge { font-size: 0.45rem; padding: 1px 6px; }
+            .head { margin-bottom: 20px; }
+            .cfx-stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .cfx-server-header .name { font-size: 1.1rem; }
+            .page-title { font-size: clamp(1.8rem, 6vw, 2.8rem); }
+        }
+        @media (max-width: 480px) {
+            .wrap { --zoom: 0.78; }
+            .nav-grid { grid-template-columns: 1fr 1fr; gap: 0.4rem; }
+            .nav-btn { min-height: 50px; padding: 0.4rem 0.2rem; font-size: 0.6rem; border-radius: 12px; }
+            .nav-btn i { font-size: 1rem; }
+            .tab { font-size: 0.55rem; padding: 3px 8px; }
+            .card { padding: 14px; }
+            .row button { font-size: 0.6rem; padding: 4px 10px; }
+            .dx-logo .dx { font-size: 1.8rem; }
+            .dx-logo .setup { font-size: 0.65rem; }
+            .dx-logo .badge { font-size: 0.4rem; padding: 1px 5px; margin-left: 4px; }
+            .page-title { font-size: clamp(1.4rem, 5vw, 2rem); }
+            .sub { font-size: 0.5rem; letter-spacing: 0.2em; }
+            .head { margin-bottom: 14px; padding-top: 0; }
+            .stats { grid-template-columns: 1fr 1fr; gap: 8px; }
+            .stat { padding: 14px 10px; }
+            .stat .num { font-size: 1.8rem; }
+            .cfx-input-area { flex-direction: column; }
+            .cfx-input-area input { width: 100%; }
+            .cfx-stats-grid { grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+            .cfx-details-grid { grid-template-columns: 1fr; }
+        }
+    </style>
 </head>
 <body>
 
-    <!-- ===== ANIMIERTER HINTERGRUND ===== -->
-    <div class="bg-container">
-        <div class="bg-orbe bg-orbe-1"></div>
-        <div class="bg-orbe bg-orbe-2"></div>
-        <div class="bg-orbe bg-orbe-3"></div>
-        <div class="bg-orbe bg-orbe-4"></div>
-        <div class="bg-orbe bg-orbe-5"></div>
-        <div class="bg-grid"></div>
-        <div class="bg-particles" id="particles"></div>
+    <canvas id="field"></canvas>
+    <div class="flash" id="flash"></div>
+
+    <!-- Musik Player - standardmäßig gemutet -->
+    <div class="music-player" id="musicPlayer">
+        <button class="mute-btn" id="muteBtn" title="Mute / Unmute">
+            <i class="fas fa-volume-mute" id="muteIcon"></i>
+        </button>
+        <span class="status-dot muted" id="statusDot"></span>
+        <span class="track-name" id="trackName">Outro</span>
     </div>
 
-    <!-- ===== AUDIO ===== -->
-    <audio id="bgMusic" loop preload="auto" volume="0.08">
-        <source src="outro.mp3" type="audio/mpeg">
-    </audio>
+    <div class="wrap">
 
-    <div class="container">
-
-        <!-- ===== HEADER ===== -->
-        <header class="header">
-            <h1><span class="highlight">Token Checker</span></h1>
-            <p>Prüfe Discord Tokens &amp; zeige Profilbild, Benutzername und Account-Alter</p>
-        </header>
-
-        <!-- ===== MAIN CARD ===== -->
-        <div class="card">
-
-            <!-- Token Input -->
-            <div class="token-area">
-                <textarea id="tokenInput" placeholder="Token hier einfügen, einer pro Zeile …"></textarea>
+        <div class="head">
+            <div class="dx-logo">
+                <span class="dx">DX</span>
+                <span class="setup">SETUP</span>
+                <span class="badge">v2.0</span>
             </div>
-
-            <!-- Buttons -->
-            <div class="action-row">
-                <button class="btn btn-primary" id="checkTokensBtn">
-                    <i class="fas fa-check-circle"></i> Check Tokens
-                </button>
-                <label for="fileInput" class="file-label">
-                    <i class="fas fa-file-import"></i> Load from File
-                </label>
-                <input type="file" id="fileInput" accept=".txt,.csv,.list">
-                <button class="btn" id="clearBtn">
-                    <i class="fas fa-trash"></i> Clear
-                </button>
-                <button class="btn btn-success" id="extractValidBtn">
-                    <i class="fas fa-filter"></i> Nur Gültige
-                </button>
-                <button class="btn btn-2fa" id="open2faBtn">
-                    <i class="fas fa-shield-alt"></i> 2FA
-                </button>
-            </div>
-
-            <!-- Filter -->
-            <div class="filter-row" id="filterRow">
-                <button class="filter-btn active" data-filter="all">📋 Alle</button>
-                <button class="filter-btn" data-filter="valid">✅ Gültig</button>
-                <button class="filter-btn" data-filter="invalid">❌ Ungültig</button>
-            </div>
-
-            <!-- Progress Bar -->
-            <div class="progress-bar" id="progressBar">
-                <div class="fill" id="progressFill"></div>
-            </div>
-
-            <!-- Stats -->
-            <div class="stats" id="statsContainer">
-                <div class="stat-box valid" data-filter="valid">
-                    <div class="number" id="validCount">0</div>
-                    <div class="label"><i class="fas fa-check-circle"></i> Gültig</div>
-                </div>
-                <div class="stat-box invalid" data-filter="invalid">
-                    <div class="number" id="invalidCount">0</div>
-                    <div class="label"><i class="fas fa-times-circle"></i> Ungültig</div>
-                </div>
-            </div>
-
-            <!-- Result List -->
-            <div id="resultContainer">
-                <div class="result-list" id="resultList">
-                    <div class="empty-state">
-                        <i class="fas fa-rocket"></i>
-                        <div>Bereit für die Token-Prüfung</div>
-                        <div class="sub-text">Füge Tokens ein und klicke auf "Check Tokens"</div>
-                    </div>
-                </div>
-            </div>
-
+            <!-- Dynamischer Titel -->
+            <h1 class="page-title" id="pageTitle"><span class="highlight">Discord</span></h1>
+            <div class="page-sub" id="pageSub">Token Checker</div>
         </div>
 
-        <!-- ===== ACCOUNT MANAGER LINK ===== -->
-        <div style="margin-top:1.5rem;text-align:center;">
-            <a href="accounts.html" class="btn btn-secondary" style="text-decoration:none;padding:0.5rem 1.5rem;">
-                <i class="fas fa-database"></i> Account Manager öffnen
+        <!-- 4 Nav Buttons - Discord standardmäßig aktiv -->
+        <div class="nav-grid">
+            <a href="#" class="nav-btn discord active" data-page="discord">
+                <div class="glow"></div>
+                <i class="fab fa-discord"></i>
+                <span>Discord</span>
+            </a>
+            <a href="#" class="nav-btn steam" data-page="steam">
+                <div class="glow"></div>
+                <i class="fab fa-steam"></i>
+                <span>Steam</span>
+            </a>
+            <a href="#" class="nav-btn rockstar" data-page="rockstar">
+                <div class="glow"></div>
+                <i class="fas fa-rocket"></i>
+                <span>Rockstar</span>
+            </a>
+            <a href="#" class="nav-btn cfx" data-page="cfx">
+                <div class="glow"></div>
+                <i class="fas fa-gamepad"></i>
+                <span>CFX</span>
             </a>
         </div>
 
-        <!-- ===== FOOTER ===== -->
-        <div class="footer">
-            <span><i class="fas fa-code"></i> by Dxsetup</span>
+        <!-- Card -->
+        <div class="card-outer shake" id="cardShake">
+            <div class="card" id="card">
+
+                <!-- ==================== DISCORD ==================== -->
+                <div id="page-discord">
+                    <div class="field-shell">
+                        <div class="scan-line" id="scanLine"></div>
+                        <textarea id="tokenInput" placeholder="Token hier einfügen, einer pro Zeile …"></textarea>
+                    </div>
+                    <div class="row">
+                        <button class="btn-primary" id="checkTokensBtn"><span class="ic">◈</span> Check Tokens</button>
+                        <button class="btn-ghost" id="loadBtn"><span class="ic">⇪</span> Load</button>
+                        <button class="btn-ghost" id="clearBtn"><span class="ic">⟲</span> Clear</button>
+                        <button class="btn-gold" id="extractValidBtn"><span class="ic">▽</span> Nur Gültige</button>
+                        <button class="btn-ghost" id="open2faBtn"><span class="ic">🛡</span> 2FA</button>
+                        <input type="file" id="fileInput" accept=".txt,.csv,.list" hidden>
+                    </div>
+
+                    <div class="tabs" role="tablist">
+                        <div class="tab active" data-filter="all">▤ Alle</div>
+                        <div class="tab" data-filter="valid">✓ Gültig</div>
+                        <div class="tab" data-filter="invalid">✕ Ungültig</div>
+                        <div class="tab account-tab" data-filter="accounts">🗝 Accounts</div>
+                    </div>
+
+                    <div class="progress-bar" id="progressBar">
+                        <div class="fill"><div class="fill-inner" id="progressFill"></div></div>
+                    </div>
+
+                    <div class="stats" id="statsContainer">
+                        <div class="stat valid" data-filter="valid">
+                            <div class="num" id="validCount">0</div>
+                            <div class="lbl">Gültig</div>
+                        </div>
+                        <div class="stat invalid" data-filter="invalid">
+                            <div class="num" id="invalidCount">0</div>
+                            <div class="lbl">Ungültig</div>
+                        </div>
+                    </div>
+
+                    <div class="results" id="resultList">
+                        <div class="empty-hint" id="emptyHint">Bereit für die Token-Prüfung.<br><strong>Füge Tokens ein und klicke auf "Check Tokens"</strong></div>
+                    </div>
+
+                    <div class="account-results" id="accountList" style="display:none;">
+                        <div class="account-actions">
+                            <button class="btn-ghost" id="exportAccountsBtn" style="padding:5px 12px;font-size:0.7rem;"><i class="fas fa-download"></i> Export</button>
+                            <button class="btn-ghost" id="clearAccountsBtn" style="padding:5px 12px;font-size:0.7rem;color:var(--rose);"><i class="fas fa-trash"></i> Alle löschen</button>
+                            <button class="btn-ghost" id="recheckAllBtn" style="padding:5px 12px;font-size:0.7rem;color:var(--violet);"><i class="fas fa-sync"></i> Neu prüfen</button>
+                        </div>
+                        <div id="accountListContent">
+                            <div class="empty-hint">Keine Accounts gespeichert.<br><strong>Prüfe Tokens, um sie zu speichern.</strong></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ==================== STEAM ==================== -->
+                <div id="page-steam" style="display:none;">
+                    <div class="batch-input-hint">
+                        <i class="fas fa-info-circle"></i>
+                        Format: <code>benutzername:passwort / email:emailpasswort</code> oder <code>benutzername:passwort:email:emailpasswort</code>
+                    </div>
+                    <div class="manager-input-area">
+                        <textarea id="steamBatchInput" placeholder="Accounts hier einfügen, einer pro Zeile&#10;z.B. wznnn237784:TsQhI283081 / mwsmlm@uwvm7m.ru:84122441"></textarea>
+                        <button class="btn btn-primary" id="addSteamBatchBtn"><i class="fas fa-plus"></i> Batch</button>
+                        <button class="btn btn-manual" id="openSteamManualBtn"><i class="fas fa-pen"></i> Manuell</button>
+                    </div>
+                    <div class="manager-stats">
+                        <span>📊 <span id="steamTotal">0</span> Accounts</span>
+                        <span>✅ <span id="steamValid">0</span> geprüft</span>
+                    </div>
+                    <div class="manager-list" id="steamList">
+                        <div class="empty-hint" style="padding:1.5rem;">
+                            <i class="fas fa-steam" style="font-size:1.8rem;display:block;margin-bottom:6px;opacity:0.3;"></i>
+                            Keine Steam Accounts gespeichert
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ==================== ROCKSTAR ==================== -->
+                <div id="page-rockstar" style="display:none;">
+                    <div class="batch-input-hint">
+                        <i class="fas fa-info-circle"></i>
+                        Format: <code>email:passwort1:passwort2:2fa_secret</code>
+                    </div>
+                    <div class="manager-input-area">
+                        <textarea id="rockstarBatchInput" placeholder="Accounts hier einfügen, einer pro Zeile&#10;z.B. krxtyzr5969@outlook.com:eb2oWRTaELS4dCz7:NA21MIZANc:WWOVFJA7RABIHTF5O7HP2PXG5A"></textarea>
+                        <button class="btn btn-primary" id="addRockstarBatchBtn"><i class="fas fa-plus"></i> Batch</button>
+                        <button class="btn btn-manual" id="openRockstarManualBtn"><i class="fas fa-pen"></i> Manuell</button>
+                    </div>
+                    <div class="manager-stats">
+                        <span>📊 <span id="rockstarTotal">0</span> Accounts</span>
+                        <span>✅ <span id="rockstarValid">0</span> geprüft</span>
+                    </div>
+                    <div class="manager-list" id="rockstarList">
+                        <div class="empty-hint" style="padding:1.5rem;">
+                            <i class="fas fa-rocket" style="font-size:1.8rem;display:block;margin-bottom:6px;opacity:0.3;"></i>
+                            Keine Rockstar Accounts gespeichert
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ==================== CFX CHECKER ==================== -->
+                <div id="page-cfx" style="display:none;">
+                    <div class="cfx-hint">
+                        <i class="fas fa-info-circle"></i>
+                        Gib den CFX-Code oder die vollständige Join-URL ein:
+                        <code>221</code> · <code>cfx.re/join/221</code> · <code>https://cfx.re/join/221</code>
+                    </div>
+
+                    <div class="cfx-input-area">
+                        <input type="text" id="cfxInput" placeholder="z.B. 221 oder cfx.re/join/221" />
+                        <button class="btn btn-cfx" id="cfxLookupBtn"><i class="fas fa-search"></i> Lookup</button>
+                    </div>
+
+                    <div class="cfx-loading" id="cfxLoading" style="display:none;">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        Server wird abgefragt …
+                    </div>
+
+                    <div class="cfx-error" id="cfxError" style="display:none;">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <div id="cfxErrorText">Server nicht gefunden</div>
+                    </div>
+
+                    <div class="cfx-empty" id="cfxEmpty">
+                        <i class="fas fa-gamepad"></i>
+                        <div style="font-size:1.1rem;font-weight:500;color:var(--text-1);">CFX Server Lookup</div>
+                        <div style="margin-top:6px;font-size:0.85rem;opacity:0.7;">Gib einen CFX-Code ein, um Server-Infos abzurufen</div>
+                        <div style="margin-top:12px;display:flex;gap:0.8rem;justify-content:center;flex-wrap:wrap;font-size:0.7rem;color:var(--text-2);">
+                            <span>z.B. <code style="background:rgba(0,0,0,0.3);padding:0.1rem 0.5rem;border-radius:4px;color:#a78bfa;">221</code></span>
+                            <span>oder <code style="background:rgba(0,0,0,0.3);padding:0.1rem 0.5rem;border-radius:4px;color:#a78bfa;">cfx.re/join/221</code></span>
+                        </div>
+                    </div>
+
+                    <div class="cfx-server-card" id="cfxServerCard">
+                        <div class="cfx-server-header">
+                            <div>
+                                <span class="name" id="cfxServerName">—</span>
+                                <span class="badge" id="cfxServerStatus" style="background:rgba(74,222,128,0.15);color:#4ade80;">● Online</span>
+                            </div>
+                            <span class="ip" id="cfxServerIp">—</span>
+                        </div>
+
+                        <div class="cfx-stats-grid">
+                            <div class="cfx-stat">
+                                <div class="value players" id="cfxPlayers">—</div>
+                                <div class="label">Spieler</div>
+                            </div>
+                            <div class="cfx-stat">
+                                <div class="value" id="cfxGameType">—</div>
+                                <div class="label">Game Type</div>
+                            </div>
+                            <div class="cfx-stat">
+                                <div class="value" id="cfxMap">—</div>
+                                <div class="label">Map</div>
+                            </div>
+                            <div class="cfx-stat">
+                                <div class="value" id="cfxBuild">—</div>
+                                <div class="label">Game Build</div>
+                            </div>
+                        </div>
+
+                        <div class="cfx-tags" id="cfxTags"></div>
+
+                        <div class="cfx-details-grid" id="cfxDetails">
+                            <div class="cfx-detail-item"><span class="key">Onesync</span><span class="val" id="cfxOnesync">—</span></div>
+                            <div class="cfx-detail-item"><span class="key">Locale</span><span class="val" id="cfxLocale">—</span></div>
+                            <div class="cfx-detail-item"><span class="key">TxAdmin</span><span class="val" id="cfxTxadmin">—</span></div>
+                            <div class="cfx-detail-item"><span class="key">Server Version</span><span class="val" id="cfxVersion">—</span></div>
+                        </div>
+
+                        <div class="cfx-section-title">
+                            <i class="fas fa-users"></i> Spieler <span class="count" id="cfxPlayerCount">(0)</span>
+                        </div>
+                        <div class="cfx-player-list" id="cfxPlayerList">
+                            <div class="cfx-player-item" style="color:var(--text-2);">Keine Spieler</div>
+                        </div>
+
+                        <div class="cfx-section-title">
+                            <i class="fas fa-cubes"></i> Resources <span class="count" id="cfxResourceCount">(0)</span>
+                        </div>
+                        <div class="cfx-resource-list" id="cfxResourceList">
+                            <div class="cfx-resource-item" style="color:var(--text-2);">Keine Resources</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
         </div>
+
+        <div class="footer">
+            <a href="#" class="btn-ghost" style="text-decoration:none;padding:10px 18px;border-radius:999px;display:inline-flex;align-items:center;gap:6px;border:1px solid rgba(255,255,255,0.1);color:var(--text-1);font-size:0.8rem;">
+                <span class="ic">🗝</span> Account Manager
+            </a>
+        </div>
+        <div class="credit">◈ by DXSETUP</div>
 
     </div>
 
-    <!-- ===== 2FA MODAL ===== -->
-    <div class="modal-overlay" id="modalOverlay">
-        <div class="modal">
-            <h2><i class="fas fa-shield-alt"></i> 2FA Code Generator</h2>
-            <div class="sub">Gib deinen Secret Key ein, um einen 6-stelligen Code zu generieren.</div>
-            <div class="input-group">
-                <label><i class="fas fa-key"></i> Secret Key</label>
-                <input type="text" id="totpSecret" placeholder="Z.B. JBSWY3DPEHPK3PXP">
+    <!-- 2FA Modal -->
+    <div class="modal-backdrop" id="modalOverlay">
+        <div class="vault-door">
+            <div class="dial"></div>
+            <h2 style="font-family:'Space Grotesk',sans-serif;margin:0 0 6px;font-size:1.3rem;color:#fff6de;">2FA Code Generator</h2>
+            <p style="color:var(--text-1);font-size:0.85rem;line-height:1.5;margin:0 0 20px;">Gib deinen Secret Key ein, um einen 6-stelligen Code zu generieren.</p>
+            <div style="text-align:left;margin-bottom:14px;">
+                <label style="color:var(--text-1);font-size:0.8rem;display:block;margin-bottom:3px;">Secret Key</label>
+                <input type="text" id="totpSecret" placeholder="Z.B. JBSWY3DPEHPK3PXP" style="width:100%;padding:8px 12px;border-radius:10px;background:rgba(0,0,0,0.4);border:1px solid rgba(68,71,102,0.2);color:#e4e9ff;font-size:0.85rem;font-family:'JetBrains Mono',monospace;outline:none;">
             </div>
-            <div class="code-display">
-                <div class="code" id="totpCode">------</div>
-                <div class="timer" id="totpTimerDisplay">30s</div>
+            <div style="background:rgba(0,0,0,0.3);border-radius:14px;padding:1.2rem;text-align:center;margin-bottom:14px;border:1px solid rgba(255,255,255,0.03);">
+                <div style="font-size:2.4rem;font-weight:700;color:#4ade80;font-family:'JetBrains Mono',monospace;letter-spacing:5px;" id="totpCode">------</div>
+                <div style="color:var(--text-2);font-size:0.75rem;margin-top:3px;"><span id="totpTimerDisplay">30s</span></div>
+            </div>
+            <div style="display:flex;gap:0.6rem;">
+                <button class="btn-ghost" id="closeModalBtn" style="flex:1;justify-content:center;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:999px;padding:10px 18px;color:var(--text-1);cursor:pointer;font-size:0.8rem;">✕ Schließen</button>
+                <button class="btn-primary" id="generateTotpBtn" style="flex:1;justify-content:center;border-radius:999px;padding:10px 18px;cursor:pointer;font-size:0.8rem;">⟳ Generieren</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Steam Manual Modal -->
+    <div class="manual-modal" id="steamManualModal">
+        <div class="manual-modal-content">
+            <h2><i class="fab fa-steam"></i> Steam Account manuell hinzufügen</h2>
+            <div class="sub">Füge einen Steam Account manuell hinzu</div>
+            <div class="input-group">
+                <label>👤 Benutzername</label>
+                <input type="text" id="steamManualUser" placeholder="z.B. wznnn237784" />
+            </div>
+            <div class="input-group">
+                <label>🔑 Passwort</label>
+                <input type="text" id="steamManualPass" placeholder="z.B. TsQhI283081" />
+            </div>
+            <div class="input-group">
+                <label>📧 E-Mail</label>
+                <input type="text" id="steamManualEmail" placeholder="z.B. mwsmlm@uwvm7m.ru" />
+            </div>
+            <div class="input-group">
+                <label>📧 E-Mail Passwort</label>
+                <input type="text" id="steamManualEmailPass" placeholder="z.B. 84122441" />
             </div>
             <div class="modal-actions">
-                <button class="btn btn-secondary" id="closeModalBtn"><i class="fas fa-times"></i> Schließen</button>
-                <button class="btn btn-primary" id="generateTotpBtn"><i class="fas fa-sync"></i> Generieren</button>
+                <button class="btn btn-secondary" onclick="closeSteamManual()"><i class="fas fa-times"></i> Abbrechen</button>
+                <button class="btn btn-primary" onclick="addSteamManual()"><i class="fas fa-plus"></i> Hinzufügen</button>
             </div>
         </div>
     </div>
 
-    <!-- ===== LOGIN MODAL (kleines Fenster) ===== -->
-    <div class="login-modal-overlay" id="loginModalOverlay">
-        <div class="login-modal">
-            <div class="login-modal-header">
-                <h3><i class="fas fa-sign-in-alt" style="color:#f472b6;"></i> Discord Login</h3>
-                <button class="login-modal-close" id="closeLoginModal">&times;</button>
+    <!-- Rockstar Manual Modal -->
+    <div class="manual-modal" id="rockstarManualModal">
+        <div class="manual-modal-content">
+            <h2><i class="fas fa-rocket"></i> Rockstar Account manuell hinzufügen</h2>
+            <div class="sub">Füge einen Rockstar Account manuell hinzu</div>
+            <div class="input-group">
+                <label>📧 E-Mail</label>
+                <input type="text" id="rockstarManualEmail" placeholder="z.B. krxtyzr5969@outlook.com" />
             </div>
-            <div class="login-modal-body">
-                <p class="login-info">Füge dieses Script in die Console von Discord ein (F12).</p>
-                <div class="login-script-box">
-                    <button class="login-copy-btn" id="copyLoginScript"><i class="fas fa-copy"></i> Kopieren</button>
-                    <code id="loginScriptCode">// Wird dynamisch befüllt</code>
-                </div>
-                <div class="login-steps">
-                    <div class="login-step">
-                        <span class="login-step-num">1</span>
-                        <span>Öffne <strong>Discord</strong> im Browser</span>
-                    </div>
-                    <div class="login-step">
-                        <span class="login-step-num">2</span>
-                        <span>Drücke <strong>F12</strong> → Tab <strong>Console</strong></span>
-                    </div>
-                    <div class="login-step">
-                        <span class="login-step-num">3</span>
-                        <span>Füge das Script ein und drücke <strong>Enter</strong></span>
-                    </div>
-                    <div class="login-step">
-                        <span class="login-step-num">4</span>
-                        <span>Warte <strong>2-3 Sekunden</strong> - du wirst eingeloggt</span>
-                    </div>
-                </div>
+            <div class="input-group">
+                <label>🔑 Passwort 1</label>
+                <input type="text" id="rockstarManualPass1" placeholder="z.B. eb2oWRTaELS4dCz7" />
             </div>
-            <div class="login-modal-footer">
-                <button class="btn btn-primary" id="closeLoginModalBtn" style="width:100%;justify-content:center;">
-                    <i class="fas fa-check"></i> Verstanden
-                </button>
+            <div class="input-group">
+                <label>🔐 Passwort 2</label>
+                <input type="text" id="rockstarManualPass2" placeholder="z.B. NA21MIZANc" />
+            </div>
+            <div class="input-group">
+                <label>🔢 2FA Secret</label>
+                <input type="text" id="rockstarManual2fa" placeholder="z.B. WWOVFJA7RABIHTF5O7HP2PXG5A" />
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeRockstarManual()"><i class="fas fa-times"></i> Abbrechen</button>
+                <button class="btn btn-primary" onclick="addRockstarManual()"><i class="fas fa-plus"></i> Hinzufügen</button>
             </div>
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <audio id="bgMusic" loop preload="auto">
+        <source src="outro.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        // ============================================================
+        // PARTIKEL HINTERGRUND
+        // ============================================================
+        const canvas = document.getElementById('field');
+        const ctx = canvas.getContext('2d');
+        const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        let particles = [];
+        let shootingStars = [];
+
+        function resize() { canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight; }
+        window.addEventListener('resize', resize);
+        resize();
+
+        function initParticles() {
+            const count = Math.min(140, Math.floor(window.innerWidth / 10));
+            particles = Array.from({ length: count }, () => ({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                r: Math.random() * 2 + 0.5,
+                vy: -(Math.random() * 0.4 + 0.08),
+                vx: (Math.random() - 0.5) * 0.25,
+                o: Math.random() * 0.6 + 0.2,
+                hue: Math.random() > 0.55 ? '244,201,93' : (Math.random() > 0.5 ? '139,124,255' : '251,69,112')
+            }));
+        }
+        initParticles();
+
+        function maybeSpawnShootingStar() {
+            if (Math.random() < 0.006) {
+                shootingStars.push({
+                    x: Math.random() * canvas.width * 0.6,
+                    y: Math.random() * canvas.height * 0.3,
+                    vx: 6 + Math.random() * 4,
+                    vy: 3 + Math.random() * 2,
+                    life: 1
+                });
+            }
+        }
+
+        function tick() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let i = 0; i < particles.length; i++) {
+                for (let j = i + 1; j < particles.length; j++) {
+                    const a = particles[i],
+                        b = particles[j];
+                    const dx = a.x - b.x,
+                        dy = a.y - b.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist < 90) {
+                        ctx.strokeStyle = `rgba(139,124,255,${0.08 * (1 - dist / 90)})`;
+                        ctx.lineWidth = 1;
+                        ctx.beginPath();
+                        ctx.moveTo(a.x, a.y);
+                        ctx.lineTo(b.x, b.y);
+                        ctx.stroke();
+                    }
+                }
+            }
+            for (const p of particles) {
+                p.x += p.vx;
+                p.y += p.vy;
+                if (p.y < -10) { p.y = canvas.height + 10;
+                    p.x = Math.random() * canvas.width; }
+                if (p.x < -10) p.x = canvas.width + 10;
+                if (p.x > canvas.width + 10) p.x = -10;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(${p.hue}, ${p.o})`;
+                ctx.shadowBlur = 8;
+                ctx.shadowColor = `rgba(${p.hue}, 0.8)`;
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            }
+            maybeSpawnShootingStar();
+            shootingStars.forEach(s => {
+                ctx.beginPath();
+                ctx.strokeStyle = `rgba(255,255,255,${s.life})`;
+                ctx.lineWidth = 2;
+                ctx.moveTo(s.x, s.y);
+                ctx.lineTo(s.x - s.vx * 8, s.y - s.vy * 8);
+                ctx.stroke();
+                s.x += s.vx;
+                s.y += s.vy;
+                s.life -= 0.02;
+            });
+            shootingStars = shootingStars.filter(s => s.life > 0 && s.x < canvas.width + 50 && s.y < canvas.height + 50);
+            requestAnimationFrame(tick);
+        }
+        requestAnimationFrame(tick);
+
+        // ============================================================
+        // MUSIK PLAYER - STANDARDMÄSSIG AUS
+        // ============================================================
+        const audio = document.getElementById('bgMusic');
+        audio.volume = 0.12;
+        audio.muted = true;
+        let isMuted = true;
+
+        const muteBtn = document.getElementById('muteBtn');
+        const muteIcon = document.getElementById('muteIcon');
+        const statusDot = document.getElementById('statusDot');
+        const trackName = document.getElementById('trackName');
+
+        muteBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            isMuted = !isMuted;
+            audio.muted = isMuted;
+            muteIcon.className = isMuted ? 'fas fa-volume-mute' : 'fas fa-volume-up';
+            statusDot.className = isMuted ? 'status-dot muted' : 'status-dot';
+            if (!isMuted && audio.paused) {
+                audio.play().catch(() => {});
+            }
+        });
+        trackName.textContent = 'Outro';
+
+        // ============================================================
+        // NAVIGATION + TITEL
+        // ============================================================
+        const navBtns = document.querySelectorAll('.nav-btn');
+        const pages = {
+            discord: document.getElementById('page-discord'),
+            steam: document.getElementById('page-steam'),
+            rockstar: document.getElementById('page-rockstar'),
+            cfx: document.getElementById('page-cfx')
+        };
+
+        const pageTitles = {
+            discord: { title: 'Discord', sub: 'Token Checker' },
+            steam: { title: 'Steam', sub: 'Account Manager' },
+            rockstar: { title: 'Rockstar', sub: 'Account Manager' },
+            cfx: { title: 'CFX', sub: 'Server Lookup' }
+        };
+
+        const pageTitleEl = document.getElementById('pageTitle');
+        const pageSubEl = document.getElementById('pageSub');
+
+        function switchPage(page) {
+            Object.keys(pages).forEach(key => {
+                pages[key].style.display = key === page ? 'block' : 'none';
+            });
+            navBtns.forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.page === page);
+            });
+
+            // Titel aktualisieren
+            const info = pageTitles[page] || pageTitles.discord;
+            pageTitleEl.innerHTML = `<span class="highlight">${info.title}</span>`;
+            pageSubEl.textContent = info.sub;
+
+            triggerFlash();
+        }
+
+        navBtns.forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const page = this.dataset.page;
+                if (page) switchPage(page);
+            });
+        });
+
+        // Discord ist standardmäßig aktiv
+        switchPage('discord');
+
+        // ============================================================
+        // FLASH & SHAKE
+        // ============================================================
+        function triggerFlash() {
+            if (reduceMotion) return;
+            const flash = document.getElementById('flash');
+            flash.classList.remove('go');
+            void flash.offsetWidth;
+            flash.classList.add('go');
+        }
+
+        function triggerShake() {
+            if (reduceMotion) return;
+            const shake = document.getElementById('cardShake');
+            shake.classList.remove('go');
+            void shake.offsetWidth;
+            shake.classList.add('go');
+        }
+
+        document.querySelectorAll('button').forEach(b => {
+            b.style.position = b.style.position || 'relative';
+            b.addEventListener('click', function(e) {
+                const rect = this.getBoundingClientRect();
+                const r = document.createElement('span');
+                r.className = 'ripple';
+                const size = Math.max(rect.width, rect.height);
+                r.style.width = r.style.height = size + 'px';
+                r.style.left = (e.clientX - rect.left - size / 2) + 'px';
+                r.style.top = (e.clientY - rect.top - size / 2) + 'px';
+                this.appendChild(r);
+                setTimeout(() => r.remove(), 650);
+            });
+        });
+
+        // ============================================================
+        // 2FA (Discord)
+        // ============================================================
+        const modalOverlay = document.getElementById('modalOverlay');
+        const totpSecret = document.getElementById('totpSecret');
+        const totpCode = document.getElementById('totpCode');
+        const totpTimerDisplay = document.getElementById('totpTimerDisplay');
+        const open2faBtn = document.getElementById('open2faBtn');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const generateTotpBtn = document.getElementById('generateTotpBtn');
+        let totpInterval = null;
+
+        function base32Decode(str) {
+            const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+            let bits = '';
+            for (let i = 0; i < str.length; i++) {
+                const val = alphabet.indexOf(str[i].toUpperCase());
+                if (val === -1) continue;
+                bits += val.toString(2).padStart(5, '0');
+            }
+            const bytes = [];
+            for (let i = 0; i + 8 <= bits.length; i += 8) {
+                bytes.push(parseInt(bits.slice(i, i + 8), 2));
+            }
+            return new Uint8Array(bytes);
+        }
+
+        async function hmacSha1(key, message) {
+            const keyData = typeof key === 'string' ? new TextEncoder().encode(key) : key;
+            const msgData = typeof message === 'string' ? new TextEncoder().encode(message) : message;
+            const cryptoKey = await crypto.subtle.importKey('raw', keyData, { name: 'HMAC', hash: 'SHA-1' }, false, ['sign']);
+            const signature = await crypto.subtle.sign('HMAC', cryptoKey, msgData);
+            return new Uint8Array(signature);
+        }
+
+        async function generateTotp(secret) {
+            if (!secret || secret.trim().length === 0) return null;
+            try {
+                const cleanSecret = secret.trim().toUpperCase().replace(/\s/g, '');
+                const key = base32Decode(cleanSecret);
+                const epoch = Math.floor(Date.now() / 1000);
+                const time = Math.floor(epoch / 30);
+                const timeBuffer = new ArrayBuffer(8);
+                const view = new DataView(timeBuffer);
+                view.setBigUint64(0, BigInt(time), false);
+                const hmac = await hmacSha1(key, new Uint8Array(timeBuffer));
+                const offset = hmac[19] & 0xf;
+                const code = ((hmac[offset] & 0x7f) << 24) |
+                    ((hmac[offset + 1] & 0xff) << 16) |
+                    ((hmac[offset + 2] & 0xff) << 8) |
+                    (hmac[offset + 3] & 0xff);
+                const totp = code % 1000000;
+                return totp.toString().padStart(6, '0');
+            } catch (e) { return null; }
+        }
+
+        open2faBtn.addEventListener('click', function() {
+            modalOverlay.classList.add('open');
+            totpSecret.value = '';
+            totpCode.textContent = '------';
+            totpTimerDisplay.textContent = '30s';
+            if (totpInterval) clearInterval(totpInterval);
+            triggerFlash();
+        });
+        closeModalBtn.addEventListener('click', function() {
+            modalOverlay.classList.remove('open');
+            if (totpInterval) clearInterval(totpInterval);
+        });
+        modalOverlay.addEventListener('click', function(e) { if (e.target === this) { modalOverlay.classList.remove('open'); if (totpInterval)
+                    clearInterval(totpInterval); } });
+
+        generateTotpBtn.addEventListener('click', async function() {
+            const secret = totpSecret.value.trim();
+            if (!secret) { showToast('❌ Bitte gib einen Secret Key ein!', 'error'); return; }
+            const code = await generateTotp(secret);
+            if (code) {
+                totpCode.textContent = code;
+                const remaining = 30 - (Math.floor(Date.now() / 1000) % 30);
+                totpTimerDisplay.textContent = remaining + 's';
+                if (totpInterval) clearInterval(totpInterval);
+                totpInterval = setInterval(async () => {
+                    const rem = 30 - (Math.floor(Date.now() / 1000) % 30);
+                    totpTimerDisplay.textContent = rem + 's';
+                    if (rem === 0 || rem === 30) {
+                        const newCode = await generateTotp(secret);
+                        if (newCode) totpCode.textContent = newCode;
+                    }
+                }, 1000);
+                showToast('✅ 2FA Code generiert!', 'success');
+                triggerFlash();
+            } else {
+                showToast('❌ Ungültiger Secret Key!', 'error');
+            }
+        });
+        totpSecret.addEventListener('keydown', function(e) { if (e.key === 'Enter') generateTotpBtn.click(); });
+
+        // ============================================================
+        // TOAST
+        // ============================================================
+        function showToast(message, type = 'info') {
+            const existing = document.querySelector('.toast');
+            if (existing) existing.remove();
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            const icons = { success: 'fa-check-circle', error: 'fa-exclamation-circle', info: 'fa-info-circle', gold: 'fa-crown' };
+            toast.innerHTML = `<i class="fas ${icons[type] || icons.info}"></i> ${message}`;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(20px)';
+                setTimeout(() => toast.remove(), 400);
+            }, 4000);
+        }
+
+        // ============================================================
+        // DISCORD TOKEN CHECKER
+        // ============================================================
+        const tokenInput = document.getElementById('tokenInput');
+        const checkBtn = document.getElementById('checkTokensBtn');
+        const fileInput = document.getElementById('fileInput');
+        const loadBtn = document.getElementById('loadBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const extractValidBtn = document.getElementById('extractValidBtn');
+        const resultList = document.getElementById('resultList');
+        const accountList = document.getElementById('accountList');
+        const accountListContent = document.getElementById('accountListContent');
+        const validCount = document.getElementById('validCount');
+        const invalidCount = document.getElementById('invalidCount');
+        const progressBar = document.getElementById('progressBar');
+        const progressFill = document.getElementById('progressFill');
+        const filterButtons = document.querySelectorAll('.tab');
+        const statBoxes = document.querySelectorAll('.stat');
+
+        const tokenCache = new Map();
+        let currentResults = [];
+        let currentTokens = [];
+        let activeFilter = 'all';
+
+        filterButtons.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const filter = this.dataset.filter;
+                if (filter === 'accounts') {
+                    resultList.style.display = 'none';
+                    document.getElementById('statsContainer').style.display = 'none';
+                    accountList.style.display = 'block';
+                    renderAccountManager();
+                    filterButtons.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    activeFilter = 'accounts';
+                } else {
+                    resultList.style.display = 'block';
+                    document.getElementById('statsContainer').style.display = 'grid';
+                    accountList.style.display = 'none';
+                    filterButtons.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    setFilter(filter);
+                }
+            });
+        });
+
+        document.getElementById('exportAccountsBtn').addEventListener('click', exportAccounts);
+        document.getElementById('clearAccountsBtn').addEventListener('click', clearAllAccounts);
+        document.getElementById('recheckAllBtn').addEventListener('click', recheckAllAccounts);
+
+        function loadAccounts() { try { return JSON.parse(localStorage.getItem('savedAccounts')) || []; } catch { return []; } }
+
+        function saveAccounts(accounts) { localStorage.setItem('savedAccounts', JSON.stringify(accounts)); }
+
+        function renderAccountManager() {
+            const accounts = loadAccounts();
+            if (accounts.length === 0) {
+                accountListContent.innerHTML =
+                    `<div class="empty-hint">Keine Accounts gespeichert.<br><strong>Prüfe Tokens, um sie zu speichern.</strong></div>`;
+                return;
+            }
+            let html = '';
+            accounts.sort((a, b) => {
+                const ageA = parseInt(a.age) || 0;
+                const ageB = parseInt(b.age) || 0;
+                return ageB - ageA;
+            });
+            accounts.forEach((acc, index) => {
+                const displayName = acc.discriminator && acc.discriminator !== '0' ?
+                    `${acc.username}#${acc.discriminator}` :
+                    acc.username;
+                const isNitro = acc.nitro && acc.nitro !== 'none';
+                html += `
+                    <div class="account-row">
+                        <div class="avatar-img">
+                            ${acc.avatar ? `<img src="${acc.avatar}" alt="Avatar" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />` : `<i class="fas fa-user" style="color:#4a507a;font-size:14px;"></i>`}
+                        </div>
+                        <div style="flex:1;min-width:0;">
+                            <div style="font-weight:600;color:var(--text-0);font-size:0.8rem;">${displayName}</div>
+                            <div class="details">
+                                <span><i class="fas fa-clock"></i> ${acc.age || 'Unbekannt'}</span>
+                                ${acc.email ? `<span><i class="fas fa-envelope"></i> ${acc.email}</span>` : ''}
+                            </div>
+                        </div>
+                        <div class="badges" style="display:flex;gap:3px;flex:0 0 auto;">
+                            ${acc.status === 'valid' ? '<span class="tag valid">VALID</span>' : '<span class="tag invalid">INVALID</span>'}
+                            ${isNitro ? `<span class="tag nitro">${acc.nitro === 'boost' ? '⚡ Boost' : '👑 Classic'}</span>` : ''}
+                        </div>
+                        <div class="actions">
+                            ${acc.status === 'valid' ? `<button onclick="window.login('${acc.token}')" class="login-btn" title="Login"><i class="fas fa-sign-in-alt"></i></button>` : ''}
+                            <button onclick="navigator.clipboard.writeText('${acc.token}')" title="Kopieren"><i class="fas fa-copy"></i></button>
+                            <button class="delete" onclick="deleteAccount('${acc.id}')" title="Löschen"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </div>
+                `;
+            });
+            accountListContent.innerHTML = html;
+        }
+
+        function deleteAccount(id) {
+            let accounts = loadAccounts();
+            accounts = accounts.filter(a => a.id !== id);
+            saveAccounts(accounts);
+            renderAccountManager();
+            showToast('🗑️ Account gelöscht!', 'info');
+        }
+
+        function clearAllAccounts() {
+            if (confirm('Alle Accounts wirklich löschen?')) {
+                saveAccounts([]);
+                renderAccountManager();
+                showToast('🗑️ Alle Accounts gelöscht!', 'info');
+            }
+        }
+
+        function exportAccounts() {
+            const accounts = loadAccounts();
+            if (accounts.length === 0) { showToast('❌ Keine Accounts zum Exportieren', 'error'); return; }
+            let csv = 'Benutzername,ID,Status,Nitro,Alter,E-Mail,Token,Datum\n';
+            accounts.forEach(acc => {
+                const name = acc.discriminator && acc.discriminator !== '0' ? `${acc.username}#${acc.discriminator}` :
+                    acc.username;
+                csv +=
+                    `"${name}",${acc.id},${acc.status},"${acc.nitro || 'Kein Nitro'}",${acc.age || 'Unbekannt'},"${acc.email || ''}",${acc.token},${acc.date || ''}\n`;
+            });
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `accounts_${new Date().toISOString().slice(0,10)}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast(`✅ ${accounts.length} Accounts exportiert!`, 'success');
+        }
+
+        async function recheckAllAccounts() {
+            const accounts = loadAccounts();
+            if (accounts.length === 0) { showToast('❌ Keine Accounts zum Prüfen', 'error'); return; }
+            showToast(`🔄 Prüfe ${accounts.length} Accounts neu...`, 'info');
+            const updated = [];
+            for (let i = 0; i < accounts.length; i++) {
+                const acc = accounts[i];
+                const result = await checkToken(acc.token);
+                if (result.status === 'valid') {
+                    updated.push({
+                        id: result.id,
+                        username: result.username,
+                        discriminator: result.discriminator,
+                        avatar: result.avatar,
+                        age: result.age,
+                        nitro: result.nitro,
+                        verified: result.verified,
+                        email: result.email,
+                        token: result.token,
+                        status: 'valid',
+                        date: acc.date || new Date().toISOString()
+                    });
+                } else {
+                    updated.push({ ...acc, status: 'invalid' });
+                }
+                await new Promise(r => setTimeout(r, 200));
+            }
+            saveAccounts(updated);
+            renderAccountManager();
+            showToast(`✅ ${updated.filter(a => a.status === 'valid').length} von ${updated.length} Accounts gültig!`, 'success');
+        }
+
+        function getAccountAgeFromId(userId) {
+            try {
+                const snowflake = BigInt(userId);
+                const timestamp = Number((snowflake >> 22n) + 1420070400000n);
+                const created = new Date(timestamp);
+                const now = new Date();
+                if (isNaN(created.getTime())) return 'Unbekannt';
+                const diffMs = now - created;
+                const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+                if (diffDays < 1) { const diffHours = Math.floor(diffMs / (1000 * 60 * 60)); return `${diffHours} Stunde${diffHours !== 1 ? 'n' : ''}`; }
+                if (diffDays < 30) return `${diffDays} Tag${diffDays !== 1 ? 'e' : ''}`;
+                if (diffDays < 365) { const months = Math.floor(diffDays / 30);
+                    const remainingDays = diffDays % 30; if (remainingDays === 0) return `${months} Monat${months !== 1 ? 'e' : ''}`; return `${months} Monat${months !== 1 ? 'e' : ''}, ${remainingDays} Tag${remainingDays !== 1 ? 'e' : ''}`; }
+                const years = Math.floor(diffDays / 365);
+                const remainingDays = diffDays % 365;
+                const months = Math.floor(remainingDays / 30);
+                const days = remainingDays % 30;
+                let result = `${years} Jahr${years > 1 ? 'e' : ''}`;
+                if (months > 0) result += `, ${months} Monat${months > 1 ? 'e' : ''}`;
+                if (days > 0 && months === 0) result += `, ${days} Tag${days > 1 ? 'e' : ''}`;
+                return result;
+            } catch (e) { return 'Unbekannt'; }
+        }
+
+        async function checkToken(token) {
+            const clean = token.trim();
+            if (!clean) return { status: 'empty', error: 'Leeres Token', token: clean };
+            if (tokenCache.has(clean)) return tokenCache.get(clean);
+            try {
+                const response = await fetch('https://discord.com/api/v10/users/@me', {
+                    headers: { 'Authorization': clean, 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
+                });
+                let result = { status: 'invalid', error: 'Unbekannter Fehler', token: clean };
+                if (response.status === 200) {
+                    const data = await response.json();
+                    const avatarUrl = data.avatar ? `https://cdn.discordapp.com/avatars/${data.id}/${data.avatar}.png?size=64` : null;
+                    const age = getAccountAgeFromId(data.id);
+                    let nitro = 'none';
+                    if (data.premium_type === 2) nitro = 'boost';
+                    else if (data.premium_type === 1) nitro = 'classic';
+                    result = {
+                        status: 'valid',
+                        username: data.username,
+                        discriminator: data.discriminator || '0',
+                        id: data.id,
+                        avatar: avatarUrl,
+                        age: age,
+                        verified: data.verified || false,
+                        email: data.email || null,
+                        nitro: nitro,
+                        token: clean,
+                        raw: data
+                    };
+                } else if (response.status === 401) {
+                    result = { status: 'invalid', error: 'Ungültiger Token', token: clean };
+                } else if (response.status === 429) {
+                    result = { status: 'invalid', error: 'Rate Limit', token: clean };
+                } else {
+                    result = { status: 'invalid', error: `HTTP ${response.status}`, token: clean };
+                }
+                tokenCache.set(clean, result);
+                return result;
+            } catch (error) {
+                const result = { status: 'invalid', error: 'Netzwerkfehler', token: clean };
+                tokenCache.set(clean, result);
+                return result;
+            }
+        }
+
+        function renderResultItem(token, result, index) {
+            const div = document.createElement('div');
+            div.className = `result-row ${result.status === 'valid' ? 'valid' : 'invalid'}`;
+            div.dataset.status = result.status || 'pending';
+            const icon = result.status === 'valid' ?
+                `<svg width="18" height="18" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" stroke="#4ade80" stroke-width="1.8"/><path d="M6 10.5l2.5 2.5L14 7" stroke="#4ade80" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>` :
+                `<svg width="18" height="18" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" stroke="#fb4570" stroke-width="1.8"/><path d="M7 7l6 6M13 7l-6 6" stroke="#fb4570" stroke-width="2" stroke-linecap="round"/></svg>`;
+            let avatarHtml = '',
+                usernameHtml = '',
+                detailsHtml = '',
+                nitroHtml = '',
+                actionsHtml = '';
+            if (result.status === 'valid') {
+                avatarHtml = result.avatar ? `<img class="avatar-img" src="${result.avatar}" alt="Avatar" />` : '';
+                const displayName = result.discriminator && result.discriminator !== '0' ? `${result.username}#${result.discriminator}` :
+                    result.username;
+                usernameHtml = `<div style="font-weight:600;color:var(--text-0);font-size:0.85rem;">${displayName}</div>`;
+                detailsHtml = `
+                    <div class="details">
+                        <span><i class="fas fa-id-card"></i> ${result.id}</span>
+                        <span><i class="fas fa-clock"></i> ${result.age}</span>
+                        ${result.verified ? `<span style="color:var(--mint);"><i class="fas fa-check-circle"></i> Verifiziert</span>` : ''}
+                        ${result.email ? `<span><i class="fas fa-envelope"></i> ${result.email}</span>` : ''}
+                    </div>
+                `;
+                if (result.nitro && result.nitro !== 'none') {
+                    nitroHtml = `<span class="nitro-indicator">${result.nitro === 'boost' ? '⚡ Boost' : '👑 Classic'}</span>`;
+                }
+                actionsHtml = `
+                    <div class="actions">
+                        <button onclick="window.login('${result.token}')" class="login-btn" title="Login"><i class="fas fa-sign-in-alt"></i></button>
+                        <button onclick="navigator.clipboard.writeText('${result.token}')" title="Kopieren"><i class="fas fa-copy"></i></button>
+                    </div>
+                `;
+            } else {
+                const shortToken = token.length > 20 ? token.slice(0, 16) + '…' : token;
+                usernameHtml = `<div style="color:var(--text-1);font-size:0.8rem;">${shortToken}</div>`;
+                detailsHtml = `<div class="details"><span style="color:var(--rose);">${result.error || 'Ungültig'}</span></div>`;
+            }
+            div.innerHTML = `
+                <span class="icon">${icon}</span>
+                ${avatarHtml}
+                <div style="flex:1;min-width:0;">
+                    ${usernameHtml}
+                    ${detailsHtml}
+                </div>
+                ${nitroHtml}
+                <span class="badge">${result.status === 'valid' ? 'Gültig' : 'Ungültig'}</span>
+                ${actionsHtml}
+            `;
+            return div;
+        }
+
+        function updateStats() {
+            let valid = 0,
+                invalid = 0;
+            currentResults.forEach(r => { if (r.status === 'valid') valid++; else if (r.status === 'invalid') invalid++; });
+            validCount.textContent = valid;
+            invalidCount.textContent = invalid;
+        }
+
+        function renderResults(tokens, results) {
+            currentTokens = tokens;
+            currentResults = results;
+            applyFilter();
+        }
+
+        function applyFilter() {
+            const filteredResults = currentResults.filter((r, index) => {
+                if (activeFilter === 'all') return true;
+                return r.status === activeFilter;
+            });
+            const filteredTokens = currentTokens.filter((t, index) => {
+                if (activeFilter === 'all') return true;
+                return currentResults[index]?.status === activeFilter;
+            });
+            if (filteredResults.length === 0) {
+                resultList.innerHTML =
+                    `<div class="empty-hint">Keine ${activeFilter === 'all' ? 'Ergebnisse' : activeFilter === 'valid' ? 'gültigen' : 'ungültigen'} Tokens<br><span style="font-size:0.75rem;opacity:0.6;">Ändere den Filter oder prüfe mehr Tokens</span></div>`;
+                return;
+            }
+            resultList.innerHTML = '';
+            filteredTokens.forEach((token, index) => {
+                const result = filteredResults[index] || { status: 'pending', error: 'Wird geprüft…', token: token };
+                const item = renderResultItem(token, result, index);
+                resultList.appendChild(item);
+            });
+        }
+
+        function setFilter(filter) {
+            activeFilter = filter;
+            filterButtons.forEach(btn => {
+                if (btn.dataset.filter !== 'accounts') {
+                    btn.classList.toggle('active', btn.dataset.filter === filter);
+                }
+            });
+            resultList.style.display = 'block';
+            document.getElementById('statsContainer').style.display = 'grid';
+            accountList.style.display = 'none';
+            applyFilter();
+        }
+
+        async function processTokens() {
+            const raw = tokenInput.value;
+            const lines = raw.split(/\r?\n/);
+            const tokens = lines.map(l => l.trim()).filter(t => t.length > 0);
+            if (tokens.length === 0) {
+                resultList.innerHTML =
+                    `<div class="empty-hint">Keine Tokens zum Prüfen<br><span style="font-size:0.75rem;opacity:0.6;">Füge Tokens in das Textfeld ein</span></div>`;
+                updateStats();
+                progressBar.style.display = 'none';
+                return;
+            }
+            document.getElementById('scanLine').classList.remove('run');
+            void document.getElementById('scanLine').offsetWidth;
+            document.getElementById('scanLine').classList.add('run');
+            triggerFlash();
+            triggerShake();
+            progressBar.style.display = 'block';
+            progressFill.style.width = '0%';
+            const pendingResults = tokens.map(t => ({ status: 'pending', error: 'Prüfe…', token: t }));
+            renderResults(tokens, pendingResults);
+            updateStats();
+            const results = [];
+            for (let i = 0; i < tokens.length; i++) {
+                const token = tokens[i];
+                const result = await checkToken(token);
+                results.push(result);
+                const currentResults = [...results];
+                for (let j = results.length; j < tokens.length; j++) {
+                    currentResults.push({ status: 'pending', error: 'Prüfe…', token: tokens[j] });
+                }
+                renderResults(tokens, currentResults);
+                updateStats();
+                progressFill.style.width = `${((i + 1) / tokens.length) * 100}%`;
+                if (i < tokens.length - 1) {
+                    await new Promise(resolve => setTimeout(resolve, 200));
+                }
+            }
+            const validResults = results.filter(r => r.status === 'valid');
+            validResults.forEach(r => addAccount(r));
+            if (activeFilter === 'accounts') renderAccountManager();
+            setFilter('all');
+            setTimeout(() => { progressBar.style.display = 'none'; }, 500);
+        }
+
+        function addAccount(account) {
+            const accounts = loadAccounts();
+            const exists = accounts.some(a => a.id === account.id);
+            if (!exists) {
+                accounts.push({
+                    id: account.id,
+                    username: account.username,
+                    discriminator: account.discriminator,
+                    avatar: account.avatar,
+                    age: account.age,
+                    nitro: account.nitro,
+                    verified: account.verified,
+                    email: account.email,
+                    token: account.token,
+                    status: account.status,
+                    date: new Date().toISOString()
+                });
+                saveAccounts(accounts);
+            }
+        }
+
+        window.login = function(token) {
+            if (!token || token.length < 10) { showToast('❌ Ungültiger Token!', 'error'); return; }
+            const script =
+                `function login(token) {\n    setInterval(() => {\n        document.body.appendChild(document.createElement \`iframe\`).contentWindow.localStorage.token = \`"\${token}"\`\n    }, 50);\n    setTimeout(() => {\n        location.reload();\n    }, 2500);\n}\nlogin('${token}');`;
+            const textarea = document.createElement('textarea');
+            textarea.value = script;
+            textarea.style.position = 'fixed';
+            textarea.style.top = '-9999px';
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            textarea.remove();
+            showToast('✅ Login-Script kopiert! Füge es in der Discord Console ein (F12)', 'success');
+        };
+
+        checkBtn.addEventListener('click', processTokens);
+        loadBtn.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(ev) { tokenInput.value = ev.target.result;
+                processTokens();
+                fileInput.value = ''; };
+            reader.readAsText(file, 'UTF-8');
+        });
+        clearBtn.addEventListener('click', function() {
+            tokenInput.value = '';
+            resultList.innerHTML =
+                `<div class="empty-hint">Keine Tokens zum Prüfen<br><span style="font-size:0.75rem;opacity:0.6;">Füge Tokens in das Textfeld ein</span></div>`;
+            updateStats();
+            tokenCache.clear();
+            progressBar.style.display = 'none';
+            setFilter('all');
+        });
+        extractValidBtn.addEventListener('click', function() {
+            const validTokens = currentResults.filter(r => r.status === 'valid');
+            if (validTokens.length === 0) { showToast('❌ Keine gültigen Tokens gefunden', 'error'); return; }
+            tokenInput.value = validTokens.map(r => r.token).join('\n');
+            processTokens();
+            showToast(`✅ ${validTokens.length} gültige Tokens extrahiert!`, 'success');
+        });
+        statBoxes.forEach(box => { box.addEventListener('click', function() { setFilter(this.dataset.filter); }); });
+        tokenInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault();
+                processTokens(); }
+        });
+
+        // ============================================================
+        // STEAM MANAGER
+        // ============================================================
+        function loadSteamAccounts() { try { return JSON.parse(localStorage.getItem('steamAccounts')) || []; } catch { return []; } }
+
+        function saveSteamAccounts(accounts) { localStorage.setItem('steamAccounts', JSON.stringify(accounts)); }
+
+        function parseSteamAccount(line) {
+            line = line.trim();
+            if (!line) return null;
+            const parts = line.split(':');
+            if (parts.length >= 4) {
+                return { username: parts[0].trim(), password: parts.slice(1, parts.length - 2).join(':').trim(),
+                    email: parts[parts.length - 2].trim(), emailPassword: parts[parts.length - 1].trim(), note: '' };
+            }
+            if (parts.length >= 3) {
+                return { username: parts[0].trim(), password: parts[1].trim(), email: parts[2].trim(), emailPassword: '',
+                    note: '' };
+            }
+            if (parts.length >= 2) {
+                return { username: parts[0].trim(), password: parts[1].trim(), email: '', emailPassword: '', note: '' };
+            }
+            return null;
+        }
+
+        function renderSteamAccounts() {
+            const accounts = loadSteamAccounts();
+            const list = document.getElementById('steamList');
+            const total = document.getElementById('steamTotal');
+            const valid = document.getElementById('steamValid');
+            if (accounts.length === 0) {
+                list.innerHTML =
+                    `<div class="empty-hint" style="padding:1.5rem;"><i class="fas fa-steam" style="font-size:1.8rem;display:block;margin-bottom:6px;opacity:0.3;"></i>Keine Steam Accounts gespeichert</div>`;
+                total.textContent = '0';
+                valid.textContent = '0';
+                return;
+            }
+            let html = '';
+            let validCount = 0;
+            accounts.forEach((acc, index) => {
+                if (acc.checked) validCount++;
+                html += `
+                    <div class="manager-item">
+                        <div class="info">
+                            <div class="avatar"><i class="fab fa-steam"></i></div>
+                            <div>
+                                <div class="name">${acc.username || 'Unbekannt'}</div>
+                                <div class="details">
+                                    ${acc.password ? `<span><span class="label">Passwort:</span> ${acc.password}</span>` : ''}
+                                    ${acc.email ? `<span><span class="label">E-Mail:</span> ${acc.email}</span>` : ''}
+                                    <span>📅 ${new Date(acc.date).toLocaleDateString()}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="badge-status ${acc.checked ? 'valid' : 'pending'}">${acc.checked ? '✅ Geprüft' : '⏳ Offen'}</div>
+                        <div class="actions">
+                            <button onclick="toggleSteamChecked(${index})" title="Als geprüft markieren"><i class="fas fa-check"></i></button>
+                            <button class="delete" onclick="deleteSteamAccount(${index})" title="Löschen"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </div>
+                `;
+            });
+            list.innerHTML = html;
+            total.textContent = accounts.length;
+            valid.textContent = validCount;
+        }
+
+        function addSteamAccounts() {
+            const raw = document.getElementById('steamBatchInput').value;
+            const lines = raw.split('\n').filter(l => l.trim());
+            if (lines.length === 0) { showToast('❌ Bitte Accounts eingeben!', 'error'); return; }
+            const accounts = loadSteamAccounts();
+            let added = 0,
+                errors = 0;
+            lines.forEach(line => {
+                const parsed = parseSteamAccount(line);
+                if (parsed) {
+                    const exists = accounts.some(a => a.username === parsed.username && a.email === parsed.email);
+                    if (!exists) {
+                        accounts.push({ ...parsed, date: new Date().toISOString(), checked: false });
+                        added++;
+                    }
+                } else { errors++; }
+            });
+            if (added > 0) {
+                saveSteamAccounts(accounts);
+                renderSteamAccounts();
+                document.getElementById('steamBatchInput').value = '';
+                showToast(`✅ ${added} Steam Accounts hinzugefügt!${errors > 0 ? ` (${errors} Fehler)` : ''}`, 'success');
+            } else {
+                showToast(`❌ Keine gültigen Accounts gefunden!${errors > 0 ? ` (${errors} Fehler)` : ''}`, 'error');
+            }
+        }
+
+        function deleteSteamAccount(index) {
+            let accounts = loadSteamAccounts();
+            accounts = accounts.filter((_, i) => i !== index);
+            saveSteamAccounts(accounts);
+            renderSteamAccounts();
+            showToast('🗑️ Steam Account gelöscht!', 'info');
+        }
+
+        function toggleSteamChecked(index) {
+            const accounts = loadSteamAccounts();
+            if (accounts[index]) { accounts[index].checked = !accounts[index].checked;
+                saveSteamAccounts(accounts);
+                renderSteamAccounts(); }
+        }
+
+        function openSteamManual() {
+            document.getElementById('steamManualModal').classList.add('active');
+            document.getElementById('steamManualUser').value = '';
+            document.getElementById('steamManualPass').value = '';
+            document.getElementById('steamManualEmail').value = '';
+            document.getElementById('steamManualEmailPass').value = '';
+            document.getElementById('steamManualUser').focus();
+        }
+
+        function closeSteamManual() { document.getElementById('steamManualModal').classList.remove('active'); }
+
+        function addSteamManual() {
+            const username = document.getElementById('steamManualUser').value.trim();
+            const password = document.getElementById('steamManualPass').value.trim();
+            const email = document.getElementById('steamManualEmail').value.trim();
+            const emailPassword = document.getElementById('steamManualEmailPass').value.trim();
+            if (!username || !password) { showToast('❌ Bitte Benutzername und Passwort eingeben!', 'error'); return; }
+            const accounts = loadSteamAccounts();
+            const exists = accounts.some(a => a.username === username && a.email === email);
+            if (exists) { showToast('⚠️ Account existiert bereits!', 'error'); return; }
+            accounts.push({ username, password, email, emailPassword, note: '', date: new Date().toISOString(),
+                checked: false });
+            saveSteamAccounts(accounts);
+            renderSteamAccounts();
+            closeSteamManual();
+            showToast('✅ Steam Account manuell hinzugefügt!', 'success');
+        }
+
+        document.getElementById('addSteamBatchBtn').addEventListener('click', addSteamAccounts);
+        document.getElementById('openSteamManualBtn').addEventListener('click', openSteamManual);
+        document.getElementById('steamManualModal').addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeSteamManual();
+            if (e.key === 'Enter') addSteamManual();
+        });
+        document.getElementById('steamManualModal').addEventListener('click', function(e) { if (e.target === this) closeSteamManual(); });
+
+        window.deleteSteamAccount = deleteSteamAccount;
+        window.toggleSteamChecked = toggleSteamChecked;
+        window.closeSteamManual = closeSteamManual;
+        window.addSteamManual = addSteamManual;
+
+        // ============================================================
+        // ROCKSTAR MANAGER
+        // ============================================================
+        function loadRockstarAccounts() { try { return JSON.parse(localStorage.getItem('rockstarAccounts')) || []; } catch { return []; } }
+
+        function saveRockstarAccounts(accounts) { localStorage.setItem('rockstarAccounts', JSON.stringify(accounts)); }
+
+        let twofaTimers = {};
+
+        function startTwofaTimer(index, secret) {
+            if (twofaTimers[index]) { clearInterval(twofaTimers[index]);
+                delete twofaTimers[index]; }
+            generateAndUpdateCode(index, secret);
+            twofaTimers[index] = setInterval(() => { generateAndUpdateCode(index, secret); }, 30000);
+        }
+
+        async function generateAndUpdateCode(index, secret) {
+            if (!secret) return;
+            const code = await generateTotp(secret);
+            if (code) {
+                const accounts = loadRockstarAccounts();
+                if (accounts[index]) {
+                    accounts[index].liveCode = code;
+                    accounts[index].codeGenerated = true;
+                    accounts[index].lastUpdate = Date.now();
+                    saveRockstarAccounts(accounts);
+                    const el = document.getElementById(`code_display_${index}`);
+                    if (el) { el.textContent = code;
+                        el.style.transition = 'transform 0.1s';
+                        el.style.transform = 'scale(1.1)';
+                        setTimeout(() => { el.style.transform = 'scale(1)'; }, 150); }
+                }
+            }
+        }
+
+        function parseRockstarAccount(line) {
+            line = line.trim();
+            if (!line) return null;
+            const parts = line.split(':');
+            if (parts.length >= 4) {
+                return { email: parts[0].trim(), password1: parts[1].trim(), password2: parts[2].trim(), twofa: parts.slice(3)
+                        .join(':').trim(), note: '' };
+            }
+            if (parts.length >= 3) {
+                return { email: parts[0].trim(), password1: parts[1].trim(), password2: parts[2].trim(), twofa: '',
+                    note: '' };
+            }
+            if (parts.length >= 2) {
+                return { email: parts[0].trim(), password1: parts[1].trim(), password2: '', twofa: '', note: '' };
+            }
+            return null;
+        }
+
+        function renderRockstarAccounts() {
+            const accounts = loadRockstarAccounts();
+            const list = document.getElementById('rockstarList');
+            const total = document.getElementById('rockstarTotal');
+            const valid = document.getElementById('rockstarValid');
+            if (accounts.length === 0) {
+                list.innerHTML =
+                    `<div class="empty-hint" style="padding:1.5rem;"><i class="fas fa-rocket" style="font-size:1.8rem;display:block;margin-bottom:6px;opacity:0.3;"></i>Keine Rockstar Accounts gespeichert</div>`;
+                total.textContent = '0';
+                valid.textContent = '0';
+                return;
+            }
+            let html = '';
+            let validCount = 0;
+            accounts.forEach((acc, index) => {
+                if (acc.checked) validCount++;
+                if (acc.twofa && !acc.liveCode) {
+                    generateAndUpdateCode(index, acc.twofa);
+                }
+                const displayCode = acc.liveCode || '—';
+                const isExpired = Date.now() - (acc.lastUpdate || 0) > 30000;
+                html += `
+                    <div class="manager-item">
+                        <div class="info">
+                            <div class="avatar"><i class="fas fa-rocket"></i></div>
+                            <div>
+                                <div class="name">${acc.email || 'Unbekannt'}</div>
+                                <div class="details">
+                                    ${acc.password1 ? `<span><span class="label">Passwort 1:</span> ${acc.password1}</span>` : ''}
+                                    ${acc.password2 ? `<span><span class="label">Passwort 2:</span> ${acc.password2}</span>` : ''}
+                                    ${acc.twofa ? `
+                                        <span>
+                                            <span class="label">2FA Code:</span>
+                                            <span class="code-display" id="code_display_${index}" onclick="copyRockstar2FA(${index})">
+                                                ${displayCode}
+                                            </span>
+                                            ${isExpired ? '<span style="color:#f472b6;font-size:0.55rem;">⏳ Abgelaufen</span>' : '<span style="color:#4ade80;font-size:0.55rem;">✅ Gültig</span>'}
+                                        </span>
+                                    ` : ''}
+                                    <span>📅 ${new Date(acc.date).toLocaleDateString()}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="badge-status ${acc.checked ? 'valid' : acc.codeGenerated ? 'generated' : 'pending'}">
+                            ${acc.checked ? '✅ Geprüft' : acc.codeGenerated ? '🔢 2FA aktiv' : '⏳ Offen'}
+                        </div>
+                        <div class="actions">
+                            ${acc.twofa ? `
+                                <button class="twofa-btn" onclick="generateRockstar2FA(${index})"><i class="fas fa-shield-alt"></i> 2FA</button>
+                                <button class="twofa-refresh" onclick="refreshRockstar2FA(${index})"><i class="fas fa-sync"></i></button>
+                            ` : ''}
+                            <button onclick="toggleRockstarChecked(${index})" title="Als geprüft markieren"><i class="fas fa-check"></i></button>
+                            <button class="delete" onclick="deleteRockstarAccount(${index})" title="Löschen"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </div>
+                `;
+            });
+            list.innerHTML = html;
+            total.textContent = accounts.length;
+            valid.textContent = validCount;
+        }
+
+        function addRockstarAccounts() {
+            const raw = document.getElementById('rockstarBatchInput').value;
+            const lines = raw.split('\n').filter(l => l.trim());
+            if (lines.length === 0) { showToast('❌ Bitte Accounts eingeben!', 'error'); return; }
+            const accounts = loadRockstarAccounts();
+            let added = 0,
+                errors = 0;
+            lines.forEach(line => {
+                const parsed = parseRockstarAccount(line);
+                if (parsed) {
+                    const exists = accounts.some(a => a.email === parsed.email);
+                    if (!exists) {
+                        accounts.push({ ...parsed, date: new Date().toISOString(), checked: false, codeGenerated: false,
+                            liveCode: '', lastUpdate: 0 });
+                        added++;
+                    }
+                } else { errors++; }
+            });
+            if (added > 0) {
+                saveRockstarAccounts(accounts);
+                renderRockstarAccounts();
+                document.getElementById('rockstarBatchInput').value = '';
+                showToast(`✅ ${added} Rockstar Accounts hinzugefügt!${errors > 0 ? ` (${errors} Fehler)` : ''}`, 'success');
+            } else {
+                showToast(`❌ Keine gültigen Accounts gefunden!${errors > 0 ? ` (${errors} Fehler)` : ''}`, 'error');
+            }
+        }
+
+        function deleteRockstarAccount(index) {
+            if (twofaTimers[index]) { clearInterval(twofaTimers[index]);
+                delete twofaTimers[index]; }
+            let accounts = loadRockstarAccounts();
+            accounts = accounts.filter((_, i) => i !== index);
+            saveRockstarAccounts(accounts);
+            renderRockstarAccounts();
+            showToast('🗑️ Rockstar Account gelöscht!', 'info');
+        }
+
+        function toggleRockstarChecked(index) {
+            const accounts = loadRockstarAccounts();
+            if (accounts[index]) { accounts[index].checked = !accounts[index].checked;
+                saveRockstarAccounts(accounts);
+                renderRockstarAccounts(); }
+        }
+
+        async function generateRockstar2FA(index) {
+            const accounts = loadRockstarAccounts();
+            const acc = accounts[index];
+            if (!acc || !acc.twofa) { showToast('❌ Kein 2FA Secret!', 'error'); return; }
+            const code = await generateTotp(acc.twofa);
+            if (code) {
+                acc.liveCode = code;
+                acc.codeGenerated = true;
+                acc.lastUpdate = Date.now();
+                saveRockstarAccounts(accounts);
+                renderRockstarAccounts();
+                startTwofaTimer(index, acc.twofa);
+                try {
+                    await navigator.clipboard.writeText(code);
+                    showToast(`✅ 2FA Code kopiert: ${code}`, 'gold');
+                } catch {
+                    const textarea = document.createElement('textarea');
+                    textarea.value = code;
+                    document.body.appendChild(textarea);
+                    textarea.select();
+                    document.execCommand('copy');
+                    textarea.remove();
+                    showToast(`✅ 2FA Code kopiert: ${code}`, 'gold');
+                }
+            } else {
+                showToast('❌ Ungültiger 2FA Secret!', 'error');
+            }
+        }
+
+        async function refreshRockstar2FA(index) {
+            const accounts = loadRockstarAccounts();
+            const acc = accounts[index];
+            if (!acc || !acc.twofa) { showToast('❌ Kein 2FA Secret!', 'error'); return; }
+            const code = await generateTotp(acc.twofa);
+            if (code) {
+                acc.liveCode = code;
+                acc.codeGenerated = true;
+                acc.lastUpdate = Date.now();
+                saveRockstarAccounts(accounts);
+                renderRockstarAccounts();
+                startTwofaTimer(index, acc.twofa);
+                showToast(`🔄 2FA Code aktualisiert: ${code}`, 'gold');
+            } else {
+                showToast('❌ Ungültiger 2FA Secret!', 'error');
+            }
+        }
+
+        async function copyRockstar2FA(index) {
+            const accounts = loadRockstarAccounts();
+            const acc = accounts[index];
+            if (!acc || !acc.twofa) { showToast('❌ Kein 2FA Secret!', 'error'); return; }
+            let code = acc.liveCode;
+            if (!code || Date.now() - acc.lastUpdate > 25000) {
+                code = await generateTotp(acc.twofa);
+                if (code) { acc.liveCode = code;
+                    acc.lastUpdate = Date.now();
+                    saveRockstarAccounts(accounts); }
+            }
+            if (code) {
+                try {
+                    await navigator.clipboard.writeText(code);
+                    showToast(`✅ 2FA Code kopiert: ${code}`, 'gold');
+                } catch {
+                    const textarea = document.createElement('textarea');
+                    textarea.value = code;
+                    document.body.appendChild(textarea);
+                    textarea.select();
+                    document.execCommand('copy');
+                    textarea.remove();
+                    showToast(`✅ 2FA Code kopiert: ${code}`, 'gold');
+                }
+            } else {
+                showToast('❌ Ungültiger 2FA Secret!', 'error');
+            }
+        }
+
+        function openRockstarManual() {
+            document.getElementById('rockstarManualModal').classList.add('active');
+            document.getElementById('rockstarManualEmail').value = '';
+            document.getElementById('rockstarManualPass1').value = '';
+            document.getElementById('rockstarManualPass2').value = '';
+            document.getElementById('rockstarManual2fa').value = '';
+            document.getElementById('rockstarManualEmail').focus();
+        }
+
+        function closeRockstarManual() { document.getElementById('rockstarManualModal').classList.remove('active'); }
+
+        function addRockstarManual() {
+            const email = document.getElementById('rockstarManualEmail').value.trim();
+            const pass1 = document.getElementById('rockstarManualPass1').value.trim();
+            const pass2 = document.getElementById('rockstarManualPass2').value.trim();
+            const twofa = document.getElementById('rockstarManual2fa').value.trim();
+            if (!email || !pass1) { showToast('❌ Bitte E-Mail und Passwort 1 eingeben!', 'error'); return; }
+            const accounts = loadRockstarAccounts();
+            const exists = accounts.some(a => a.email === email);
+            if (exists) { showToast('⚠️ Account existiert bereits!', 'error'); return; }
+            accounts.push({ email, password1: pass1, password2: pass2, twofa, note: '', date: new Date().toISOString(),
+                checked: false,
+                codeGenerated: false, liveCode: '', lastUpdate: 0 });
+            saveRockstarAccounts(accounts);
+            renderRockstarAccounts();
+            closeRockstarManual();
+            showToast('✅ Rockstar Account manuell hinzugefügt!', 'success');
+        }
+
+        document.getElementById('addRockstarBatchBtn').addEventListener('click', addRockstarAccounts);
+        document.getElementById('openRockstarManualBtn').addEventListener('click', openRockstarManual);
+        document.getElementById('rockstarManualModal').addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeRockstarManual();
+            if (e.key === 'Enter') addRockstarManual();
+        });
+        document.getElementById('rockstarManualModal').addEventListener('click', function(e) { if (e.target === this) closeRockstarManual(); });
+
+        window.deleteRockstarAccount = deleteRockstarAccount;
+        window.toggleRockstarChecked = toggleRockstarChecked;
+        window.generateRockstar2FA = generateRockstar2FA;
+        window.refreshRockstar2FA = refreshRockstar2FA;
+        window.copyRockstar2FA = copyRockstar2FA;
+        window.closeRockstarManual = closeRockstarManual;
+        window.addRockstarManual = addRockstarManual;
+
+        // ============================================================
+        // CFX CHECKER - ECHTE API
+        // ============================================================
+        const cfxInput = document.getElementById('cfxInput');
+        const cfxLookupBtn = document.getElementById('cfxLookupBtn');
+        const cfxLoading = document.getElementById('cfxLoading');
+        const cfxError = document.getElementById('cfxError');
+        const cfxErrorText = document.getElementById('cfxErrorText');
+        const cfxServerCard = document.getElementById('cfxServerCard');
+        const cfxEmpty = document.getElementById('cfxEmpty');
+
+        const cfxServerName = document.getElementById('cfxServerName');
+        const cfxServerStatus = document.getElementById('cfxServerStatus');
+        const cfxServerIp = document.getElementById('cfxServerIp');
+        const cfxPlayers = document.getElementById('cfxPlayers');
+        const cfxGameType = document.getElementById('cfxGameType');
+        const cfxMap = document.getElementById('cfxMap');
+        const cfxBuild = document.getElementById('cfxBuild');
+        const cfxTags = document.getElementById('cfxTags');
+        const cfxOnesync = document.getElementById('cfxOnesync');
+        const cfxLocale = document.getElementById('cfxLocale');
+        const cfxTxadmin = document.getElementById('cfxTxadmin');
+        const cfxVersion = document.getElementById('cfxVersion');
+        const cfxPlayerList = document.getElementById('cfxPlayerList');
+        const cfxResourceList = document.getElementById('cfxResourceList');
+        const cfxPlayerCount = document.getElementById('cfxPlayerCount');
+        const cfxResourceCount = document.getElementById('cfxResourceCount');
+
+        function stripColor(str) {
+            if (!str) return '';
+            return str.replace(/\^[0-9]/g, '');
+        }
+
+        function extractCfxCode(input) {
+            let code = input.trim();
+            code = code.replace(/^https?:\/\//, '');
+            code = code.replace(/^cfx\.re\/join\//, '');
+            code = code.replace(/^cfx\.re\/join$/, '');
+            code = code.split('/')[0];
+            code = code.trim();
+            return code || null;
+        }
+
+        function renderServer(data) {
+            const info = data.Data || {};
+            const endpoint = (info.connectEndPoints && info.connectEndPoints[0]) || data.EndPoint || '';
+            const hostname = stripColor(info.hostname || 'Unbekannter Server');
+            const players = info.players || [];
+            const clients = info.clients || 0;
+            const maxClients = info.sv_maxclients || info.svMaxclients || 0;
+            const gametype = info.gametype || '';
+            const mapname = info.mapname || '';
+            const server = info.server || '';
+            const onesync = (info.vars && info.vars.onesync_enabled) || '';
+            const locale = (info.vars && info.vars.locale) || '';
+            const tags = (info.vars && info.vars.tags) || '';
+            const resources = info.resources || [];
+            const gameBuild = (info.vars && info.vars.sv_enforceGameBuild) || '';
+            const txAdmin = (info.vars && info.vars['txAdmin-version']) || '';
+
+            cfxEmpty.style.display = 'none';
+            cfxServerCard.classList.add('visible');
+
+            cfxServerName.textContent = hostname;
+            cfxServerStatus.textContent = '● Online';
+            cfxServerStatus.style.color = '#4ade80';
+            cfxServerIp.textContent = endpoint || 'N/A';
+
+            cfxPlayers.textContent = `${clients} / ${maxClients}`;
+            cfxGameType.textContent = gametype || 'N/A';
+            cfxMap.textContent = mapname || 'N/A';
+            cfxBuild.textContent = gameBuild || 'N/A';
+
+            cfxTags.innerHTML = '';
+            if (tags) {
+                tags.split(',').forEach(tag => {
+                    const span = document.createElement('span');
+                    span.className = 'tag';
+                    const lower = tag.toLowerCase();
+                    if (lower.includes('roleplay') || lower.includes('german') || lower.includes('deutsch')) {
+                        span.classList.add('gold');
+                    }
+                    span.textContent = tag.trim();
+                    cfxTags.appendChild(span);
+                });
+            }
+
+            cfxOnesync.textContent = onesync === 'true' ? 'Enabled' : 'Disabled';
+            cfxLocale.textContent = locale || 'N/A';
+            cfxTxadmin.textContent = txAdmin || 'N/A';
+            cfxVersion.textContent = server || 'N/A';
+
+            cfxPlayerList.innerHTML = '';
+            if (players.length > 0) {
+                players.forEach(p => {
+                    const div = document.createElement('div');
+                    div.className = 'cfx-player-item';
+                    div.innerHTML =
+                        `<span class="id">${p.id}</span><span class="name">${p.name}</span><span class="ping">${p.ping}ms</span>`;
+                    cfxPlayerList.appendChild(div);
+                });
+                cfxPlayerCount.textContent = `(${players.length})`;
+            } else {
+                cfxPlayerList.innerHTML = `<div class="cfx-player-item" style="color:var(--text-2);">Keine Spieler</div>`;
+                cfxPlayerCount.textContent = '(0)';
+            }
+
+            cfxResourceList.innerHTML = '';
+            if (resources.length > 0) {
+                resources.slice(0, 50).forEach(r => {
+                    const div = document.createElement('div');
+                    div.className = 'cfx-resource-item';
+                    div.innerHTML = `<span class="rname">${r}</span>`;
+                    cfxResourceList.appendChild(div);
+                });
+                cfxResourceCount.textContent = `(${resources.length})`;
+            } else {
+                cfxResourceList.innerHTML = `<div class="cfx-resource-item" style="color:var(--text-2);">Keine Resources</div>`;
+                cfxResourceCount.textContent = '(0)';
+            }
+        }
+
+        async function performLookup() {
+            const input = cfxInput.value;
+            const code = extractCfxCode(input);
+
+            if (!code || code.length < 1) {
+                showToast('❌ Bitte gib einen gültigen CFX-Code ein!', 'error');
+                return;
+            }
+
+            cfxLoading.style.display = 'block';
+            cfxError.style.display = 'none';
+            cfxServerCard.classList.remove('visible');
+            cfxEmpty.style.display = 'none';
+
+            try {
+                const response = await fetch(`https://servers-frontend.fivem.net/api/servers/single/${code}`);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                if (data && data.Data) {
+                    renderServer(data);
+                    showToast(`✅ Server gefunden!`, 'success');
+                    triggerFlash();
+                } else {
+                    throw new Error('Keine Daten empfangen');
+                }
+            } catch (error) {
+                cfxLoading.style.display = 'none';
+                cfxError.style.display = 'block';
+                cfxErrorText.textContent = `Server mit Code "${code}" nicht gefunden. Bitte überprüfe den Code.`;
+                showToast('❌ Server nicht gefunden!', 'error');
+                console.error('CFX API Error:', error);
+            } finally {
+                cfxLoading.style.display = 'none';
+            }
+        }
+
+        cfxInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                performLookup();
+            }
+        });
+
+        cfxLookupBtn.addEventListener('click', performLookup);
+
+        // ============================================================
+        // INIT
+        // ============================================================
+        renderSteamAccounts();
+        renderRockstarAccounts();
+        setFilter('all');
+        cfxEmpty.style.display = 'block';
+        cfxServerCard.classList.remove('visible');
+
+        console.log('%c🔐 DXSETUP Checker geladen!', 'font-size:16px; font-weight:bold; color:#8b9cf7;');
+        console.log('%c🎵 Musik ist standardmäßig aus (gemutet)', 'font-size:12px; color:#8892b0;');
+        console.log('%c🎮 CFX: Gib einen Code wie "221" ein', 'font-size:12px; color:#8892b0;');
+    </script>
 </body>
 </html>
