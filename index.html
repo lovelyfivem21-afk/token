@@ -2875,45 +2875,53 @@
         }
 
         async function performLookup() {
-            const input = cfxInput.value;
-            const code = extractCfxCode(input);
+    const input = cfxInput.value;
+    const code = extractCfxCode(input);
 
-            if (!code || code.length < 1) {
-                showToast('❌ Bitte gib einen gültigen CFX-Code ein!', 'error');
-                return;
-            }
+    if (!code || code.length < 1) {
+        showToast('❌ Bitte gib einen gültigen CFX-Code ein!', 'error');
+        return;
+    }
 
-            cfxLoading.style.display = 'block';
-            cfxError.style.display = 'none';
-            cfxServerCard.classList.remove('visible');
-            cfxEmpty.style.display = 'none';
+    cfxLoading.style.display = 'block';
+    cfxError.style.display = 'none';
+    cfxServerCard.classList.remove('visible');
+    cfxEmpty.style.display = 'none';
 
-            try {
-                const response = await fetch(`https://servers-frontend.fivem.net/api/servers/single/${code}`);
+    try {
+        const response = await fetch(
+            `https://frontend.cfx-services.net/api/servers/single/${encodeURIComponent(code)}`
+        );
 
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}`);
-                }
-
-                const data = await response.json();
-
-                if (data && data.Data) {
-                    renderServer(data);
-                    showToast(`✅ Server gefunden!`, 'success');
-                    triggerFlash();
-                } else {
-                    throw new Error('Keine Daten empfangen');
-                }
-            } catch (error) {
-                cfxLoading.style.display = 'none';
-                cfxError.style.display = 'block';
-                cfxErrorText.textContent = `Server mit Code "${code}" nicht gefunden. Bitte überprüfe den Code.`;
-                showToast('❌ Server nicht gefunden!', 'error');
-                console.error('CFX API Error:', error);
-            } finally {
-                cfxLoading.style.display = 'none';
-            }
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
         }
+
+        const data = await response.json();
+
+        if (data && data.Data) {
+            renderServer(data);
+            showToast('✅ Server gefunden!', 'success');
+            triggerFlash();
+        } else {
+            throw new Error('Keine Daten empfangen');
+        }
+
+    } catch (error) {
+        cfxLoading.style.display = 'none';
+        cfxError.style.display = 'block';
+
+        cfxErrorText.textContent =
+            `Server mit Code "${code}" nicht gefunden. Bitte überprüfe den Code.`;
+
+        showToast('❌ Server nicht gefunden!', 'error');
+
+        console.error('CFX API Error:', error);
+
+    } finally {
+        cfxLoading.style.display = 'none';
+    }
+}
 
         cfxInput.addEventListener('keydown', function(e) {
             if (e.key === 'Enter') {
